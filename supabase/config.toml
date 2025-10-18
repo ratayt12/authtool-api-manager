@@ -1,1 +1,13 @@
 project_id = "kapauudeaollnikedsta"
+
+[functions.create-key]
+verify_jwt = true
+
+[functions.reset-key]
+verify_jwt = true
+
+[functions.get-key-details]
+verify_jwt = true
+
+[functions.delete-key]
+verify_jwt = true
