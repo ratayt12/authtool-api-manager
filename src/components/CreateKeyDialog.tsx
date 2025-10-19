@@ -16,50 +16,25 @@ interface CreateKeyDialogProps {
 export const CreateKeyDialog = ({ children, onKeyCreated }: CreateKeyDialogProps) => {
   const [open, setOpen] = useState(false);
   const [duration, setDuration] = useState<string>("1day");
-  const [packageId, setPackageId] = useState<string>("");
-  const [alias, setAlias] = useState<string>("");
   const [loading, setLoading] = useState(false);
 
   const handleCreateKey = async () => {
     setLoading(true);
+
     try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        toast.error("You must be logged in");
-        setLoading(false);
-        return;
-      }
-
-      const pid = Number(packageId);
-      if (!Number.isInteger(pid) || pid <= 0) {
-        toast.error("Enter a valid AuthTool Package ID");
-        setLoading(false);
-        return;
-      }
-
       const { data, error } = await supabase.functions.invoke("create-key", {
         body: { 
-          duration,
-          packageIds: [pid],
-          alias: alias || undefined
+          duration
         },
       });
 
-      if (error) {
-        console.error("Edge function error:", error);
-        throw new Error(error.message || "Failed to create key");
-      }
+      if (error) throw error;
 
-      if (data?.error) {
-        throw new Error(data.error);
-      }
-
-      toast.success(`Key created successfully! ${data.creditsRemaining} credits remaining`);
+      toast.success(`Key created: ${data.keyCode}`);
       setOpen(false);
-      
-      if (onKeyCreated) onKeyCreated();
+      onKeyCreated?.();
     } catch (error: any) {
-      console.error("Create key error:", error);
+      console.error("Error creating key:", error);
       toast.error(error.message || "Failed to create key");
     } finally {
       setLoading(false);
@@ -79,34 +54,6 @@ export const CreateKeyDialog = ({ children, onKeyCreated }: CreateKeyDialogProps
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-4 py-4">
-          <div className="space-y-2">
-            <Label htmlFor="alias">Custom Key Name (optional)</Label>
-            <Input
-              id="alias"
-              type="text"
-              placeholder="e.g. estebanIos"
-              value={alias}
-              onChange={(e) => setAlias(e.target.value)}
-            />
-            <p className="text-xs text-muted-foreground">
-              Your key will appear as: {alias || "authtool.app"}-{duration.replace(/\d+/, "")}-XXXX
-            </p>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="packageId">AuthTool Package ID</Label>
-            <Input
-              id="packageId"
-              type="number"
-              placeholder="e.g. 3915"
-              value={packageId}
-              onChange={(e) => setPackageId(e.target.value)}
-            />
-            <p className="text-xs text-muted-foreground">
-              Find this in your AuthTool dashboard
-            </p>
-          </div>
-
           <div className="space-y-2">
             <Label htmlFor="duration">Key Duration</Label>
             <Select value={duration} onValueChange={setDuration}>

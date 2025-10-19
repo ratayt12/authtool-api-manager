@@ -60,7 +60,7 @@ serve(async (req) => {
       );
     }
 
-    const { duration, packageIds, alias } = await req.json();
+    const { duration } = await req.json();
 
     // Map duration to days and unit
     const durationMap: Record<string, { duration: number; unit: string }> = {
@@ -84,11 +84,10 @@ serve(async (req) => {
       },
       body: JSON.stringify({
         quantity: 1,
-        packageIds: packageIds || [1],
+        packageIds: [3915],
         duration: durationConfig.duration,
         unit: durationConfig.unit,
-        isCleanable: true,
-        ...(alias && { alias })
+        isCleanable: true
       })
     });
 
@@ -110,7 +109,7 @@ serve(async (req) => {
         user_id: user.id,
         key_code: keyCode,
         duration: duration,
-        package_ids: packageIds || [1],
+        package_ids: [3915],
         is_cleanable: true,
         status: 'active'
       });

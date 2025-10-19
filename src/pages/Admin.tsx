@@ -6,8 +6,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { Loader2, ArrowLeft, Check, X, Plus, Minus } from "lucide-react";
+import { Loader2, ArrowLeft, Check, X, Ban, Shield } from "lucide-react";
 
 interface User {
   id: string;
@@ -15,12 +19,18 @@ interface User {
   approval_status: "approved" | "pending" | "rejected";
   credits: number;
   created_at: string;
+  ban_until: string | null;
+  ban_message: string | null;
 }
 
 const Admin = () => {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [creditInputs, setCreditInputs] = useState<Record<string, number>>({});
+  const [banDialogOpen, setBanDialogOpen] = useState(false);
+  const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [banDuration, setBanDuration] = useState<string>("1day");
+  const [banMessage, setBanMessage] = useState<string>("");
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -110,6 +120,83 @@ const Admin = () => {
     }
   };
 
+  const handleBanUser = async () => {
+    if (!selectedUser) return;
+
+    const durationMap: Record<string, number> = {
+      "1day": 1,
+      "1week": 7,
+      "1month": 30,
+      "1year": 365,
+    };
+
+    const days = durationMap[banDuration] || 1;
+    const banUntil = new Date();
+    banUntil.setDate(banUntil.getDate() + days);
+
+    try {
+      const { error } = await supabase
+        .from("profiles")
+        .update({
+          ban_until: banUntil.toISOString(),
+          ban_message: banMessage || "You have been banned.",
+        })
+        .eq("id", selectedUser.id);
+
+      if (error) throw error;
+
+      toast.success(`User banned for ${banDuration}`);
+      setBanDialogOpen(false);
+      setSelectedUser(null);
+      setBanMessage("");
+      await loadUsers();
+    } catch (error) {
+      toast.error("Failed to ban user");
+    }
+  };
+
+  const handleUnbanUser = async (userId: string) => {
+    try {
+      const { error } = await supabase
+        .from("profiles")
+        .update({
+          ban_until: null,
+          ban_message: null,
+        })
+        .eq("id", userId);
+
+      if (error) throw error;
+
+      toast.success("User unbanned successfully");
+      await loadUsers();
+    } catch (error) {
+      toast.error("Failed to unban user");
+    }
+  };
+
+  const setUserAsAdmin = async (userId: string) => {
+    try {
+      const { error } = await supabase
+        .from("user_roles")
+        .insert({ user_id: userId, role: "admin" });
+
+      if (error) throw error;
+
+      toast.success("User set as admin");
+    } catch (error: any) {
+      if (error.code === "23505") {
+        toast.info("User is already an admin");
+      } else {
+        toast.error("Failed to set user as admin");
+      }
+    }
+  };
+
+  const isUserBanned = (user: User) => {
+    if (!user.ban_until) return false;
+    return new Date(user.ban_until) > new Date();
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
@@ -149,6 +236,7 @@ const Admin = () => {
                   <TableRow>
                     <TableHead>Username</TableHead>
                     <TableHead>Status</TableHead>
+                    <TableHead>Ban Status</TableHead>
                     <TableHead>Credits</TableHead>
                     <TableHead>Created</TableHead>
                     <TableHead className="text-right">Actions</TableHead>
@@ -170,6 +258,15 @@ const Admin = () => {
                         >
                           {user.approval_status}
                         </Badge>
+                      </TableCell>
+                      <TableCell>
+                        {isUserBanned(user) ? (
+                          <Badge variant="destructive">
+                            Banned until {new Date(user.ban_until!).toLocaleDateString()}
+                          </Badge>
+                        ) : (
+                          <Badge variant="outline">Active</Badge>
+                        )}
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center gap-2">
@@ -201,12 +298,22 @@ const Admin = () => {
                         {new Date(user.created_at).toLocaleDateString()}
                       </TableCell>
                       <TableCell className="text-right space-x-2">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => setUserAsAdmin(user.id)}
+                          title="Set as Admin"
+                        >
+                          <Shield className="h-4 w-4" />
+                        </Button>
+                        
                         {user.approval_status === "pending" && (
                           <>
                             <Button
                               size="sm"
                               variant="default"
                               onClick={() => updateApprovalStatus(user.id, "approved")}
+                              title="Approve User"
                             >
                               <Check className="h-4 w-4" />
                             </Button>
@@ -214,10 +321,34 @@ const Admin = () => {
                               size="sm"
                               variant="destructive"
                               onClick={() => updateApprovalStatus(user.id, "rejected")}
+                              title="Reject User"
                             >
                               <X className="h-4 w-4" />
                             </Button>
                           </>
+                        )}
+
+                        {isUserBanned(user) ? (
+                          <Button
+                            size="sm"
+                            variant="secondary"
+                            onClick={() => handleUnbanUser(user.id)}
+                            title="Unban User"
+                          >
+                            Unban
+                          </Button>
+                        ) : (
+                          <Button
+                            size="sm"
+                            variant="destructive"
+                            onClick={() => {
+                              setSelectedUser(user);
+                              setBanDialogOpen(true);
+                            }}
+                            title="Ban User"
+                          >
+                            <Ban className="h-4 w-4" />
+                          </Button>
                         )}
                       </TableCell>
                     </TableRow>
@@ -227,6 +358,51 @@ const Admin = () => {
             </div>
           </CardContent>
         </Card>
+
+        <Dialog open={banDialogOpen} onOpenChange={setBanDialogOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Ban User</DialogTitle>
+              <DialogDescription>
+                Ban {selectedUser?.username} for a specified duration with a custom message.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4 py-4">
+              <div className="space-y-2">
+                <Label htmlFor="ban-duration">Ban Duration</Label>
+                <Select value={banDuration} onValueChange={setBanDuration}>
+                  <SelectTrigger id="ban-duration">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="1day">1 Day</SelectItem>
+                    <SelectItem value="1week">1 Week</SelectItem>
+                    <SelectItem value="1month">1 Month</SelectItem>
+                    <SelectItem value="1year">1 Year</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="ban-message">Ban Message</Label>
+                <Textarea
+                  id="ban-message"
+                  placeholder="Enter reason for ban..."
+                  value={banMessage}
+                  onChange={(e) => setBanMessage(e.target.value)}
+                  rows={4}
+                />
+              </div>
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setBanDialogOpen(false)}>
+                Cancel
+              </Button>
+              <Button variant="destructive" onClick={handleBanUser}>
+                Ban User
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   );

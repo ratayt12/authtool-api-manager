@@ -67,6 +67,8 @@ export type Database = {
       profiles: {
         Row: {
           approval_status: Database["public"]["Enums"]["approval_status"]
+          ban_message: string | null
+          ban_until: string | null
           created_at: string
           credits: number
           id: string
@@ -75,6 +77,8 @@ export type Database = {
         }
         Insert: {
           approval_status?: Database["public"]["Enums"]["approval_status"]
+          ban_message?: string | null
+          ban_until?: string | null
           created_at?: string
           credits?: number
           id: string
@@ -83,6 +87,8 @@ export type Database = {
         }
         Update: {
           approval_status?: Database["public"]["Enums"]["approval_status"]
+          ban_message?: string | null
+          ban_until?: string | null
           created_at?: string
           credits?: number
           id?: string
