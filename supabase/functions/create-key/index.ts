@@ -145,6 +145,8 @@ serve(async (req) => {
       statusCode = 400;
     } else if (errorMessage.includes('pending approval') || errorMessage.includes('Unauthorized')) {
       statusCode = 403;
+    } else if (errorMessage.includes('Package not found')) {
+      statusCode = 404;
     } else if (errorMessage.includes('not configured')) {
       statusCode = 500;
     }

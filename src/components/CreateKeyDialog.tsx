@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
@@ -15,6 +16,7 @@ interface CreateKeyDialogProps {
 export const CreateKeyDialog = ({ children, onKeyCreated }: CreateKeyDialogProps) => {
   const [open, setOpen] = useState(false);
   const [duration, setDuration] = useState<string>("1day");
+  const [packageId, setPackageId] = useState<string>("");
   const [loading, setLoading] = useState(false);
 
   const handleCreateKey = async () => {
@@ -70,6 +72,17 @@ export const CreateKeyDialog = ({ children, onKeyCreated }: CreateKeyDialogProps
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-4 py-4">
+          <div className="space-y-2">
+            <Label htmlFor="packageId">AuthTool Package ID</Label>
+            <Input
+              id="packageId"
+              type="number"
+              placeholder="e.g. 123"
+              value={packageId}
+              onChange={(e) => setPackageId(e.target.value)}
+            />
+          </div>
+
           <div className="space-y-2">
             <Label htmlFor="duration">Key Duration</Label>
             <Select value={duration} onValueChange={setDuration}>
