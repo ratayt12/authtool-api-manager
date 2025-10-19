@@ -1,53 +1,47 @@
-"use client"
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Label } from "@/components/ui/label";
+import { toast } from "sonner";
+import { Loader2, KeyRound } from "lucide-react";
 
-import type React from "react"
-
-import { useState, useEffect } from "react"
-import { useRouter } from "next/navigation"
-import { supabase } from "@/integrations/supabase/client"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Label } from "@/components/ui/label"
-import { toast } from "sonner"
-import { Loader2, KeyRound } from "lucide-react"
-
-export default function Auth() {
-  const [isLogin, setIsLogin] = useState(true)
-  const [email, setEmail] = useState("")
-  const [password, setPassword] = useState("")
-  const [username, setUsername] = useState("")
-  const [loading, setLoading] = useState(false)
-  const router = useRouter()
+const Auth = () => {
+  const [isLogin, setIsLogin] = useState(true);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [username, setUsername] = useState("");
+  const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
     // Check if user is already logged in
     const checkSession = async () => {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession()
+      const { data: { session } } = await supabase.auth.getSession();
       if (session) {
-        router.push("/dashboard")
+        navigate("/dashboard");
       }
-    }
-    checkSession()
-  }, [router])
+    };
+    checkSession();
+  }, [navigate]);
 
   const handleAuth = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setLoading(true)
+    e.preventDefault();
+    setLoading(true);
 
     try {
       if (isLogin) {
         const { error } = await supabase.auth.signInWithPassword({
           email,
           password,
-        })
+        });
 
-        if (error) throw error
+        if (error) throw error;
 
-        toast.success("Logged in successfully!")
-        router.push("/dashboard")
+        toast.success("Logged in successfully!");
+        navigate("/dashboard");
       } else {
         const { error } = await supabase.auth.signUp({
           email,
@@ -58,19 +52,19 @@ export default function Auth() {
             },
             emailRedirectTo: `${window.location.origin}/dashboard`,
           },
-        })
+        });
 
-        if (error) throw error
+        if (error) throw error;
 
-        toast.success("Account created! Please wait for admin approval.")
-        setIsLogin(true)
+        toast.success("Account created! Please wait for admin approval.");
+        setIsLogin(true);
       }
     } catch (error: any) {
-      toast.error(error.message)
+      toast.error(error.message);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-background to-accent/10 p-4">
@@ -85,7 +79,9 @@ export default function Auth() {
             {isLogin ? "Welcome Back" : "Create Account"}
           </CardTitle>
           <CardDescription className="text-center">
-            {isLogin ? "Sign in to manage your API keys" : "Register for a new account"}
+            {isLogin
+              ? "Sign in to manage your API keys"
+              : "Register for a new account"}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -138,12 +134,19 @@ export default function Auth() {
             </Button>
           </form>
           <div className="mt-4 text-center text-sm">
-            <button onClick={() => setIsLogin(!isLogin)} className="text-primary hover:text-accent transition-colors">
-              {isLogin ? "Don't have an account? Sign up" : "Already have an account? Sign in"}
+            <button
+              onClick={() => setIsLogin(!isLogin)}
+              className="text-primary hover:text-accent transition-colors"
+            >
+              {isLogin
+                ? "Don't have an account? Sign up"
+                : "Already have an account? Sign in"}
             </button>
           </div>
         </CardContent>
       </Card>
     </div>
-  )
-}
+  );
+};
+
+export default Auth;
