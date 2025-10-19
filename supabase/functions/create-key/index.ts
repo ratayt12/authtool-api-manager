@@ -138,9 +138,20 @@ serve(async (req) => {
   } catch (error) {
     console.error('Error in create-key function:', error);
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    
+    // Determine appropriate status code
+    let statusCode = 500;
+    if (errorMessage.includes('Insufficient credits')) {
+      statusCode = 400;
+    } else if (errorMessage.includes('pending approval') || errorMessage.includes('Unauthorized')) {
+      statusCode = 403;
+    } else if (errorMessage.includes('not configured')) {
+      statusCode = 500;
+    }
+    
     return new Response(
       JSON.stringify({ error: errorMessage }),
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      { status: statusCode, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }
 });

@@ -33,7 +33,14 @@ export const CreateKeyDialog = ({ children, onKeyCreated }: CreateKeyDialogProps
         },
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error("Edge function error:", error);
+        throw new Error(error.message || "Failed to create key");
+      }
+
+      if (data?.error) {
+        throw new Error(data.error);
+      }
 
       toast.success(`Key created successfully! ${data.creditsRemaining} credits remaining`);
       setOpen(false);
@@ -43,6 +50,7 @@ export const CreateKeyDialog = ({ children, onKeyCreated }: CreateKeyDialogProps
         onKeyCreated();
       }
     } catch (error: any) {
+      console.error("Create key error:", error);
       toast.error(error.message || "Failed to create key");
     } finally {
       setLoading(false);
