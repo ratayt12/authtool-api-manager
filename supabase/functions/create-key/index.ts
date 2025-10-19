@@ -60,7 +60,7 @@ serve(async (req) => {
       );
     }
 
-    const { duration, packageIds } = await req.json();
+    const { duration, packageIds, alias } = await req.json();
 
     // Map duration to days and unit
     const durationMap: Record<string, { duration: number; unit: string }> = {
@@ -87,7 +87,8 @@ serve(async (req) => {
         packageIds: packageIds || [1],
         duration: durationConfig.duration,
         unit: durationConfig.unit,
-        isCleanable: true
+        isCleanable: true,
+        ...(alias && { alias })
       })
     });
 

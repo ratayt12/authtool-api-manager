@@ -17,6 +17,7 @@ export const CreateKeyDialog = ({ children, onKeyCreated }: CreateKeyDialogProps
   const [open, setOpen] = useState(false);
   const [duration, setDuration] = useState<string>("1day");
   const [packageId, setPackageId] = useState<string>("");
+  const [alias, setAlias] = useState<string>("");
   const [loading, setLoading] = useState(false);
 
   const handleCreateKey = async () => {
@@ -39,7 +40,8 @@ export const CreateKeyDialog = ({ children, onKeyCreated }: CreateKeyDialogProps
       const { data, error } = await supabase.functions.invoke("create-key", {
         body: { 
           duration,
-          packageIds: [pid]
+          packageIds: [pid],
+          alias: alias || undefined
         },
       });
 
@@ -78,14 +80,31 @@ export const CreateKeyDialog = ({ children, onKeyCreated }: CreateKeyDialogProps
         </DialogHeader>
         <div className="space-y-4 py-4">
           <div className="space-y-2">
+            <Label htmlFor="alias">Custom Key Name (optional)</Label>
+            <Input
+              id="alias"
+              type="text"
+              placeholder="e.g. estebanIos"
+              value={alias}
+              onChange={(e) => setAlias(e.target.value)}
+            />
+            <p className="text-xs text-muted-foreground">
+              Your key will appear as: {alias || "authtool.app"}-{duration.replace(/\d+/, "")}-XXXX
+            </p>
+          </div>
+
+          <div className="space-y-2">
             <Label htmlFor="packageId">AuthTool Package ID</Label>
             <Input
               id="packageId"
               type="number"
-              placeholder="e.g. 123"
+              placeholder="e.g. 3915"
               value={packageId}
               onChange={(e) => setPackageId(e.target.value)}
             />
+            <p className="text-xs text-muted-foreground">
+              Find this in your AuthTool dashboard
+            </p>
           </div>
 
           <div className="space-y-2">
