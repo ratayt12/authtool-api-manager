@@ -25,13 +25,21 @@ export const CreateKeyDialog = ({ children, onKeyCreated }: CreateKeyDialogProps
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) {
         toast.error("You must be logged in");
+        setLoading(false);
+        return;
+      }
+
+      const pid = Number(packageId);
+      if (!Number.isInteger(pid) || pid <= 0) {
+        toast.error("Enter a valid AuthTool Package ID");
+        setLoading(false);
         return;
       }
 
       const { data, error } = await supabase.functions.invoke("create-key", {
         body: { 
           duration,
-          packageIds: [1] // Default package ID
+          packageIds: [pid]
         },
       });
 
@@ -47,10 +55,7 @@ export const CreateKeyDialog = ({ children, onKeyCreated }: CreateKeyDialogProps
       toast.success(`Key created successfully! ${data.creditsRemaining} credits remaining`);
       setOpen(false);
       
-      // Refresh parent component
-      if (onKeyCreated) {
-        onKeyCreated();
-      }
+      if (onKeyCreated) onKeyCreated();
     } catch (error: any) {
       console.error("Create key error:", error);
       toast.error(error.message || "Failed to create key");
