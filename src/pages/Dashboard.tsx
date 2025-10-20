@@ -13,6 +13,8 @@ interface Profile {
   username: string;
   approval_status: string;
   credits: number;
+  ban_until: string | null;
+  ban_message: string | null;
 }
 
 const Dashboard = () => {
@@ -80,6 +82,8 @@ const Dashboard = () => {
     );
   }
 
+  const isUserBanned = profile?.ban_until && new Date(profile.ban_until) > new Date();
+
   if (profile?.approval_status === "pending") {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-background to-accent/10 p-4">
@@ -105,13 +109,42 @@ const Dashboard = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-accent/10">
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-accent/10 relative">
+      {/* Ban Overlay */}
+      {isUserBanned && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-xl bg-background/80">
+          <Card className="max-w-md mx-4 shadow-2xl border-destructive/50">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-destructive">
+                <Shield className="h-5 w-5" />
+                Account Suspended
+              </CardTitle>
+              <CardDescription>
+                Your account has been temporarily suspended until{" "}
+                {new Date(profile.ban_until!).toLocaleString()}
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="p-4 rounded-lg bg-destructive/10 border border-destructive/20">
+                <p className="text-sm text-foreground whitespace-pre-wrap">
+                  {profile.ban_message || "You have been banned from using this service."}
+                </p>
+              </div>
+              <Button onClick={handleLogout} variant="destructive" className="w-full">
+                <LogOut className="mr-2 h-4 w-4" />
+                Sign Out
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+      
       <div className="container mx-auto p-4 md:p-8 space-y-6">
         {/* Header */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
           <div>
             <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-              Key Management Dashboard
+              Sonic Reseller Dashboard
             </h1>
             <p className="text-muted-foreground mt-1">
               Welcome back, {profile?.username}
@@ -156,8 +189,11 @@ const Dashboard = () => {
               <Key className="h-4 w-4 text-accent" />
             </CardHeader>
             <CardContent>
-              <CreateKeyDialog onKeyCreated={checkUser}>
-                <Button className="w-full bg-gradient-to-r from-primary to-accent hover:opacity-90">
+              <CreateKeyDialog onKeyCreated={checkUser} disabled={!!isUserBanned}>
+                <Button 
+                  className="w-full bg-gradient-to-r from-primary to-accent hover:opacity-90"
+                  disabled={!!isUserBanned}
+                >
                   <Plus className="mr-2 h-4 w-4" />
                   Create New Key
                 </Button>

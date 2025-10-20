@@ -11,9 +11,10 @@ import { Loader2 } from "lucide-react";
 interface CreateKeyDialogProps {
   children: React.ReactNode;
   onKeyCreated?: () => void;
+  disabled?: boolean;
 }
 
-export const CreateKeyDialog = ({ children, onKeyCreated }: CreateKeyDialogProps) => {
+export const CreateKeyDialog = ({ children, onKeyCreated, disabled = false }: CreateKeyDialogProps) => {
   const [open, setOpen] = useState(false);
   const [duration, setDuration] = useState<string>("1day");
   const [loading, setLoading] = useState(false);
@@ -42,8 +43,8 @@ export const CreateKeyDialog = ({ children, onKeyCreated }: CreateKeyDialogProps
   };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
+    <Dialog open={open} onOpenChange={disabled ? undefined : setOpen}>
+      <DialogTrigger asChild disabled={disabled}>
         {children}
       </DialogTrigger>
       <DialogContent className="sm:max-w-md">

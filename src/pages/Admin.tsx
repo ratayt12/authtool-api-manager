@@ -31,6 +31,7 @@ const Admin = () => {
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [banDuration, setBanDuration] = useState<string>("1day");
   const [banMessage, setBanMessage] = useState<string>("");
+  const [adminUsers, setAdminUsers] = useState<Set<string>>(new Set());
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -76,6 +77,16 @@ const Admin = () => {
 
       if (error) throw error;
       setUsers(data || []);
+
+      // Load admin users
+      const { data: adminData } = await supabase
+        .from("user_roles")
+        .select("user_id")
+        .eq("role", "admin");
+
+      if (adminData) {
+        setAdminUsers(new Set(adminData.map(r => r.user_id)));
+      }
     } catch (error) {
       toast.error("Failed to load users");
     } finally {
@@ -183,12 +194,30 @@ const Admin = () => {
       if (error) throw error;
 
       toast.success("User set as admin");
+      await loadUsers();
     } catch (error: any) {
       if (error.code === "23505") {
         toast.info("User is already an admin");
       } else {
         toast.error("Failed to set user as admin");
       }
+    }
+  };
+
+  const removeUserAdmin = async (userId: string) => {
+    try {
+      const { error } = await supabase
+        .from("user_roles")
+        .delete()
+        .eq("user_id", userId)
+        .eq("role", "admin");
+
+      if (error) throw error;
+
+      toast.success("Admin role removed");
+      await loadUsers();
+    } catch (error) {
+      toast.error("Failed to remove admin role");
     }
   };
 
@@ -298,14 +327,25 @@ const Admin = () => {
                         {new Date(user.created_at).toLocaleDateString()}
                       </TableCell>
                       <TableCell className="text-right space-x-2">
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => setUserAsAdmin(user.id)}
-                          title="Set as Admin"
-                        >
-                          <Shield className="h-4 w-4" />
-                        </Button>
+                        {adminUsers.has(user.id) ? (
+                          <Button
+                            size="sm"
+                            variant="destructive"
+                            onClick={() => removeUserAdmin(user.id)}
+                            title="Remove Admin"
+                          >
+                            <Shield className="h-4 w-4" />
+                          </Button>
+                        ) : (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => setUserAsAdmin(user.id)}
+                            title="Set as Admin"
+                          >
+                            <Shield className="h-4 w-4" />
+                          </Button>
+                        )}
                         
                         {user.approval_status === "pending" && (
                           <>

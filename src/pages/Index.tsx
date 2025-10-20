@@ -13,10 +13,10 @@ const Index = () => {
             </div>
           </div>
           <h1 className="text-5xl font-bold bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent animate-gradient">
-            AuthTool Key Manager
+            Sonic Reseller
           </h1>
           <p className="text-xl text-muted-foreground">
-            Professional API key management system with credit-based access control
+            Professional key management system with secure access control
           </p>
         </div>
 
