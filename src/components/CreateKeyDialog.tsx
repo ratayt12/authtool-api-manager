@@ -63,7 +63,7 @@ export const CreateKeyDialog = ({ children, onKeyCreated }: CreateKeyDialogProps
               <SelectContent>
                 <SelectItem value="1day">1 Day</SelectItem>
                 <SelectItem value="1week">1 Week</SelectItem>
-                <SelectItem value="25days">25 Days</SelectItem>
+                <SelectItem value="25days">1 Month</SelectItem>
               </SelectContent>
             </Select>
           </div>
