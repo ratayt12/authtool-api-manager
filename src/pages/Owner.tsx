@@ -23,7 +23,7 @@ interface User {
   ban_message: string | null;
 }
 
-const Admin = () => {
+const Owner = () => {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [creditInputs, setCreditInputs] = useState<Record<string, number>>({});
@@ -35,10 +35,10 @@ const Admin = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    checkAdminAndLoadUsers();
+    checkOwnerAndLoadUsers();
   }, []);
 
-  const checkAdminAndLoadUsers = async () => {
+  const checkOwnerAndLoadUsers = async () => {
     try {
       const { data: { session } } = await supabase.auth.getSession();
       
@@ -47,23 +47,23 @@ const Admin = () => {
         return;
       }
 
-      // Check if user is admin (not owner)
+      // Check if user is owner
       const { data: roleData } = await supabase
         .from("user_roles")
         .select("role")
         .eq("user_id", session.user.id)
-        .in("role", ["admin"])
+        .eq("role", "owner")
         .single();
 
       if (!roleData) {
-        toast.error("Access denied: Admin privileges required");
+        toast.error("Access denied: Owner privileges required");
         navigate("/dashboard");
         return;
       }
 
       await loadUsers();
     } catch (error) {
-      console.error("Error checking admin:", error);
+      console.error("Error checking owner:", error);
       navigate("/dashboard");
     }
   };
@@ -185,6 +185,41 @@ const Admin = () => {
     }
   };
 
+  const setUserAsAdmin = async (userId: string) => {
+    try {
+      const { error } = await supabase
+        .from("user_roles")
+        .insert({ user_id: userId, role: "admin" });
+
+      if (error) throw error;
+
+      toast.success("User set as admin");
+      await loadUsers();
+    } catch (error: any) {
+      if (error.code === "23505") {
+        toast.info("User is already an admin");
+      } else {
+        toast.error("Failed to set user as admin");
+      }
+    }
+  };
+
+  const removeUserAdmin = async (userId: string) => {
+    try {
+      const { error } = await supabase
+        .from("user_roles")
+        .delete()
+        .eq("user_id", userId)
+        .eq("role", "admin");
+
+      if (error) throw error;
+
+      toast.success("Admin role removed");
+      await loadUsers();
+    } catch (error) {
+      toast.error("Failed to remove admin role");
+    }
+  };
 
   const isUserBanned = (user: User) => {
     if (!user.ban_until) return false;
@@ -208,10 +243,10 @@ const Admin = () => {
           </Button>
           <div>
             <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-              Admin Panel
+              Owner Panel
             </h1>
             <p className="text-muted-foreground mt-1">
-              Manage users, approvals, and credits
+              Full control over users, approvals, admins, and credits
             </p>
           </div>
         </div>
@@ -220,7 +255,7 @@ const Admin = () => {
           <CardHeader>
             <CardTitle>User Management</CardTitle>
             <CardDescription>
-              Approve new users and manage their credits
+              Manage all aspects of user accounts
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -239,7 +274,14 @@ const Admin = () => {
                 <TableBody>
                   {users.map((user) => (
                     <TableRow key={user.id}>
-                      <TableCell className="font-medium">{user.username}</TableCell>
+                      <TableCell className="font-medium">
+                        <div className="flex items-center gap-2">
+                          {user.username}
+                          {adminUsers.has(user.id) && (
+                            <Badge variant="secondary">Admin</Badge>
+                          )}
+                        </div>
+                      </TableCell>
                       <TableCell>
                         <Badge
                           variant={
@@ -292,6 +334,26 @@ const Admin = () => {
                         {new Date(user.created_at).toLocaleDateString()}
                       </TableCell>
                       <TableCell className="text-right space-x-2">
+                        {adminUsers.has(user.id) ? (
+                          <Button
+                            size="sm"
+                            variant="destructive"
+                            onClick={() => removeUserAdmin(user.id)}
+                            title="Remove Admin"
+                          >
+                            <Shield className="h-4 w-4" />
+                          </Button>
+                        ) : (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => setUserAsAdmin(user.id)}
+                            title="Set as Admin"
+                          >
+                            <Shield className="h-4 w-4" />
+                          </Button>
+                        )}
+                        
                         {user.approval_status === "pending" && (
                           <>
                             <Button
@@ -393,4 +455,4 @@ const Admin = () => {
   );
 };
 
-export default Admin;
+export default Owner;

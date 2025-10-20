@@ -21,6 +21,7 @@ const Dashboard = () => {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [isOwner, setIsOwner] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -47,15 +48,18 @@ const Dashboard = () => {
 
       setProfile(profileData);
 
-      // Check if user is admin
+      // Check if user is admin or owner
       const { data: roleData } = await supabase
         .from("user_roles")
         .select("role")
         .eq("user_id", session.user.id)
-        .eq("role", "admin")
-        .single();
+        .in("role", ["admin", "owner"]);
 
-      setIsAdmin(!!roleData);
+      if (roleData && roleData.length > 0) {
+        const roles = roleData.map(r => r.role);
+        setIsAdmin(roles.includes("admin"));
+        setIsOwner(roles.includes("owner"));
+      }
 
       if (profileData.approval_status !== "approved") {
         toast.info("Your account is pending admin approval");
@@ -151,6 +155,12 @@ const Dashboard = () => {
             </p>
           </div>
           <div className="flex gap-2">
+            {isOwner && (
+              <Button onClick={() => navigate("/owner")} variant="default">
+                <Shield className="mr-2 h-4 w-4" />
+                Owner Panel
+              </Button>
+            )}
             {isAdmin && (
               <Button onClick={() => navigate("/admin")} variant="outline">
                 <Shield className="mr-2 h-4 w-4" />

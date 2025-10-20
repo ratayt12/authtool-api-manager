@@ -30,7 +30,50 @@ serve(async (req) => {
 
     const { keyCode } = await req.json();
 
-    // Verify the key belongs to the user and delete it
+    // Verify the key belongs to the user
+    const { data: keyData, error: keyError } = await supabase
+      .from('keys')
+      .select('*')
+      .eq('key_code', keyCode)
+      .eq('user_id', user.id)
+      .single();
+
+    if (keyError || !keyData) {
+      throw new Error('Key not found or unauthorized');
+    }
+
+    // Delete from AuthTool API first
+    const authToolApiKey = Deno.env.get('AUTHTOOL_API_KEY');
+    if (!authToolApiKey) {
+      console.error('AUTHTOOL_API_KEY not configured');
+      throw new Error('API configuration error');
+    }
+
+    try {
+      const authToolResponse = await fetch('https://api.auth.gg/v1/deletekey', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          type: 'deletekey',
+          authorization: authToolApiKey,
+          key: keyCode,
+        }),
+      });
+
+      const authToolResult = await authToolResponse.json();
+      
+      if (authToolResult.status !== 'success') {
+        console.error('AuthTool API error:', authToolResult);
+        throw new Error(authToolResult.message || 'Failed to delete key from AuthTool');
+      }
+    } catch (error) {
+      console.error('Error calling AuthTool API:', error);
+      throw new Error('Failed to delete key from AuthTool API');
+    }
+
+    // Delete from database
     const { error: deleteError } = await supabase
       .from('keys')
       .delete()
@@ -38,7 +81,7 @@ serve(async (req) => {
       .eq('user_id', user.id);
 
     if (deleteError) {
-      console.error('Failed to delete key:', deleteError);
+      console.error('Failed to delete key from database:', deleteError);
       throw new Error('Failed to delete key from database');
     }
 
