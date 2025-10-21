@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { Loader2, LogOut, Plus, Key, Shield, Coins } from "lucide-react";
 import { KeysList } from "@/components/KeysList";
 import { CreateKeyDialog } from "@/components/CreateKeyDialog";
+import { SupportChat } from "@/components/SupportChat";
 
 interface Profile {
   id: string;

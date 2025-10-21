@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import { SupportChat } from "@/components/SupportChat";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
@@ -72,7 +73,7 @@ const Owner = () => {
     try {
       const { data, error } = await supabase
         .from("profiles")
-        .select("*")
+        .select("id, username, approval_status, credits, created_at, ban_until, ban_message")
         .order("created_at", { ascending: false });
 
       if (error) throw error;
@@ -405,6 +406,8 @@ const Owner = () => {
             </div>
           </CardContent>
         </Card>
+
+        <SupportChat isAdmin={true} />
 
         <Dialog open={banDialogOpen} onOpenChange={setBanDialogOpen}>
           <DialogContent>

@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { Loader2, RefreshCw, Trash2, Info } from "lucide-react";
+import { Loader2, RefreshCw, Trash2, Info, Ban, Shield, Lock, Unlock } from "lucide-react";
 import { KeyDetailsDialog } from "./KeyDetailsDialog";
 
 interface Key {
@@ -16,9 +16,19 @@ interface Key {
   activate_count: number;
 }
 
+interface Device {
+  uid: string;
+  expireAt: string;
+  activeAt: string;
+  isExpired: boolean;
+  status: number;
+}
+
 export const KeysList = () => {
   const [keys, setKeys] = useState<Key[]>([]);
   const [loading, setLoading] = useState(true);
+  const [selectedKey, setSelectedKey] = useState<string | null>(null);
+  const [devices, setDevices] = useState<Device[]>([]);
 
   useEffect(() => {
     loadKeys();
@@ -62,8 +72,82 @@ export const KeysList = () => {
     }
   };
 
+  const handleBlock = async (keyCode: string) => {
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return;
+
+      const { error } = await supabase.functions.invoke("block-key", {
+        body: { keyCode },
+      });
+
+      if (error) throw error;
+
+      toast.success("Key blocked successfully");
+      await loadKeys();
+    } catch (error: any) {
+      toast.error(error.message || "Failed to block key");
+    }
+  };
+
+  const handleUnblock = async (keyCode: string) => {
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return;
+
+      const { error } = await supabase.functions.invoke("unblock-key", {
+        body: { keyCode },
+      });
+
+      if (error) throw error;
+
+      toast.success("Key unblocked successfully");
+      await loadKeys();
+    } catch (error: any) {
+      toast.error(error.message || "Failed to unblock key");
+    }
+  };
+
+  const loadDevices = async (keyCode: string) => {
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return;
+
+      const { data, error } = await supabase.functions.invoke("get-key-details", {
+        body: { keyCode },
+      });
+
+      if (error) throw error;
+
+      setDevices(data.devices || []);
+      setSelectedKey(keyCode);
+    } catch (error: any) {
+      toast.error(error.message || "Failed to load devices");
+    }
+  };
+
+  const handleBanUdid = async (keyCode: string, udid: string) => {
+    if (!confirm(`Are you sure you want to ban device ${udid}?`)) return;
+
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return;
+
+      const { error } = await supabase.functions.invoke("ban-udid", {
+        body: { keyCode, udid },
+      });
+
+      if (error) throw error;
+
+      toast.success("UDID banned successfully");
+      await loadDevices(keyCode);
+    } catch (error: any) {
+      toast.error(error.message || "Failed to ban UDID");
+    }
+  };
+
   const handleDelete = async (keyCode: string) => {
-    if (!confirm("Are you sure you want to delete this key?")) return;
+    if (!confirm("Are you sure you want to delete this key? This action cannot be undone.")) return;
 
     try {
       const { data: { session } } = await supabase.auth.getSession();
@@ -75,7 +159,7 @@ export const KeysList = () => {
 
       if (error) throw error;
 
-      toast.success("Key deleted successfully");
+      toast.success("Key deleted successfully from both database and AuthTool");
       await loadKeys();
     } catch (error: any) {
       toast.error(error.message || "Failed to delete key");
@@ -126,32 +210,95 @@ export const KeysList = () => {
                         <p>Activations: <span className="text-foreground">{key.activate_count}</span></p>
                       </div>
                     </div>
-                    <div className="flex gap-2">
-                      <KeyDetailsDialog keyCode={key.key_code}>
-                        <Button variant="outline" size="sm">
-                          <Info className="h-4 w-4" />
+                    <div className="flex flex-col gap-2">
+                      <div className="flex gap-2 flex-wrap">
+                        <KeyDetailsDialog keyCode={key.key_code}>
+                          <Button variant="outline" size="sm">
+                            <Info className="h-4 w-4 mr-1" />
+                            <span className="hidden sm:inline">Details</span>
+                          </Button>
+                        </KeyDetailsDialog>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleReset(key.key_code)}
+                        >
+                          <RefreshCw className="h-4 w-4 mr-1" />
+                          <span className="hidden sm:inline">Reset</span>
                         </Button>
-                      </KeyDetailsDialog>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleReset(key.key_code)}
-                      >
-                        <RefreshCw className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="destructive"
-                        size="sm"
-                        onClick={() => handleDelete(key.key_code)}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
+                        {key.status === "blocked" ? (
+                          <Button
+                            variant="default"
+                            size="sm"
+                            onClick={() => handleUnblock(key.key_code)}
+                          >
+                            <Unlock className="h-4 w-4 mr-1" />
+                            <span className="hidden sm:inline">Unblock</span>
+                          </Button>
+                        ) : (
+                          <Button
+                            variant="secondary"
+                            size="sm"
+                            onClick={() => handleBlock(key.key_code)}
+                          >
+                            <Lock className="h-4 w-4 mr-1" />
+                            <span className="hidden sm:inline">Block</span>
+                          </Button>
+                        )}
+                      </div>
+                      <div className="flex gap-2 flex-wrap">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => loadDevices(key.key_code)}
+                        >
+                          <Shield className="h-4 w-4 mr-1" />
+                          <span className="hidden sm:inline">Manage UDIDs</span>
+                        </Button>
+                        <Button
+                          variant="destructive"
+                          size="sm"
+                          onClick={() => handleDelete(key.key_code)}
+                        >
+                          <Trash2 className="h-4 w-4 mr-1" />
+                          <span className="hidden sm:inline">Delete</span>
+                        </Button>
+                      </div>
                     </div>
                   </div>
                 </CardContent>
               </Card>
             ))}
           </div>
+        )}
+
+        {selectedKey && devices.length > 0 && (
+          <Card className="mt-4 bg-muted/30">
+            <CardHeader>
+              <CardTitle className="text-lg">Devices for {selectedKey}</CardTitle>
+              <CardDescription>Manage device UDIDs</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-2">
+                {devices.map((device, index) => (
+                  <div key={device.uid} className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 p-3 bg-card rounded-lg border">
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs font-medium mb-1">Device {index + 1}</p>
+                      <code className="text-xs text-muted-foreground break-all">{device.uid}</code>
+                    </div>
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      onClick={() => handleBanUdid(selectedKey, device.uid)}
+                    >
+                      <Ban className="h-4 w-4 mr-1" />
+                      <span className="hidden sm:inline">Ban UDID</span>
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
         )}
       </CardContent>
     </Card>
