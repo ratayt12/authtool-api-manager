@@ -213,8 +213,11 @@ const Dashboard = () => {
           </Card>
         </div>
 
-        {/* Keys List */}
-        <KeysList />
+        <div className="space-y-6">
+          <KeysList />
+          
+          <SupportChat />
+        </div>
       </div>
     </div>
   );

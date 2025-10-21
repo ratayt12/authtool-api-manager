@@ -1,4 +1,4 @@
-import { KeyRound, Shield, Coins } from "lucide-react";
+import { KeyRound, Shield, Coins, Smartphone } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
@@ -46,7 +46,7 @@ const Index = () => {
           </Card>
         </div>
 
-        <div className="flex gap-4 justify-center">
+        <div className="flex flex-col sm:flex-row gap-4 justify-center">
           <Button 
             size="lg" 
             onClick={() => window.location.href = '/auth'}
@@ -60,6 +60,14 @@ const Index = () => {
             onClick={() => window.location.href = '/auth'}
           >
             Sign In
+          </Button>
+          <Button 
+            size="lg" 
+            variant="secondary"
+            onClick={() => window.location.href = '/download-ios'}
+          >
+            <Smartphone className="mr-2 h-4 w-4" />
+            iOS Config
           </Button>
         </div>
       </div>

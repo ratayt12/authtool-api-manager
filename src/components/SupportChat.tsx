@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import type { Database } from "@/integrations/supabase/types";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,17 +8,10 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { toast } from "sonner";
 import { Loader2, Send, Image as ImageIcon } from "lucide-react";
 
-interface Message {
-  id: string;
-  user_id: string;
-  message: string;
-  image_url: string | null;
-  is_admin: boolean;
-  created_at: string;
-}
+type SupportMessage = Database['public']['Tables']['support_messages']['Row'];
 
 export const SupportChat = ({ isAdmin = false }: { isAdmin?: boolean }) => {
-  const [messages, setMessages] = useState<Message[]>([]);
+  const [messages, setMessages] = useState<SupportMessage[]>([]);
   const [loading, setLoading] = useState(true);
   const [newMessage, setNewMessage] = useState("");
   const [uploading, setUploading] = useState(false);

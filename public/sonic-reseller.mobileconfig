@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>PayloadContent</key>
+    <array>
+        <dict>
+            <key>DNSSettings</key>
+            <dict>
+                <key>DNSProtocol</key>
+                <string>HTTPS</string>
+            </dict>
+            <key>PayloadDescription</key>
+            <string>Configures Sonic Reseller app settings</string>
+            <key>PayloadDisplayName</key>
+            <string>Sonic Reseller Configuration</string>
+            <key>PayloadIdentifier</key>
+            <string>com.sonic.reseller.config</string>
+            <key>PayloadType</key>
+            <string>com.apple.webcontent-filter</string>
+            <key>PayloadUUID</key>
+            <string>AE3D8B12-B5E1-4F5D-9CB1-8A4C7E6D3F2A</string>
+            <key>PayloadVersion</key>
+            <integer>1</integer>
+        </dict>
+        <dict>
+            <key>Label</key>
+            <string>Sonic Reseller</string>
+            <key>URL</key>
+            <string>https://sonic-reseller.netlify.app</string>
+            <key>PayloadDescription</key>
+            <string>Adds Sonic Reseller to home screen</string>
+            <key>PayloadDisplayName</key>
+            <string>Sonic Reseller Web Clip</string>
+            <key>PayloadIdentifier</key>
+            <string>com.sonic.reseller.webclip</string>
+            <key>PayloadType</key>
+            <string>com.apple.webClip.managed</string>
+            <key>PayloadUUID</key>
+            <string>BE4E9C23-C6F2-5G6E-0DC2-9B5D8F7E4G3B</string>
+            <key>PayloadVersion</key>
+            <integer>1</integer>
+            <key>Precomposed</key>
+            <true/>
+            <key>FullScreen</key>
+            <true/>
+        </dict>
+    </array>
+    <key>PayloadDescription</key>
+    <string>Install this profile to add Sonic Reseller to your iOS device</string>
+    <key>PayloadDisplayName</key>
+    <string>Sonic Reseller</string>
+    <key>PayloadIdentifier</key>
+    <string>com.sonic.reseller</string>
+    <key>PayloadRemovalDisallowed</key>
+    <false/>
+    <key>PayloadType</key>
+    <string>Configuration</string>
+    <key>PayloadUUID</key>
+    <string>CF5F0D34-D7G3-6H7F-1ED3-0C6E9G8F5H4C</string>
+    <key>PayloadVersion</key>
+    <integer>1</integer>
+</dict>
+</plist>
