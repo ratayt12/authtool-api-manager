@@ -6,9 +6,9 @@
     <array>
         <dict>
             <key>Label</key>
-            <string>Sonic Reseller</string>
+            <string>Sonic API</string>
             <key>URL</key>
-            <string>https://sonic-reseller.netlify.app</string>
+            <string>https://sonicreseller.netlify.app</string>
             <key>PayloadDescription</key>
             <string>Adds Sonic Reseller to the home screen</string>
             <key>PayloadDisplayName</key>
@@ -25,8 +25,17 @@
             <true/>
             <key>FullScreen</key>
             <true/>
+            <key>IsRemovable</key>
+            <true/>
+            <key>Icon</key>
+            <data>
+            <!-- Base64-encoded image will go here -->
+            </data>
+            <key>IconURL</key>
+            <string>https://media.discordapp.net/attachments/1092192491840737421/1429613108778897589/64925cb6-4500-4b63-81f9-26f1f7341c9b.jpg?ex=68f817f6&is=68f6c676&hm=d9f121beecf906a2eb67e82ca5d90ccfbbc3232948f036d2ae749a26a1aa2dbe&=&format=webp&width=563&height=563</string>
         </dict>
     </array>
+
     <key>PayloadDescription</key>
     <string>Install this profile to add Sonic Reseller to your iOS device</string>
     <key>PayloadDisplayName</key>
