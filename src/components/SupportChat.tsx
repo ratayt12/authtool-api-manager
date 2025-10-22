@@ -5,8 +5,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { Loader2, Send, Image as ImageIcon } from "lucide-react";
+import { Loader2, Send, Image as ImageIcon, Video, CheckCheck } from "lucide-react";
 
 type SupportMessage = Database['public']['Tables']['support_messages']['Row'];
 
@@ -16,8 +17,12 @@ export const SupportChat = ({ isAdmin = false }: { isAdmin?: boolean }) => {
   const [newMessage, setNewMessage] = useState("");
   const [uploading, setUploading] = useState(false);
   const [imageFile, setImageFile] = useState<File | null>(null);
+  const [videoFile, setVideoFile] = useState<File | null>(null);
+  const [username, setUsername] = useState("");
+  const [readReceipts, setReadReceipts] = useState<Record<string, string[]>>({});
 
   useEffect(() => {
+    loadUsername();
     loadMessages();
     
     // Subscribe to new messages
@@ -41,6 +46,23 @@ export const SupportChat = ({ isAdmin = false }: { isAdmin?: boolean }) => {
     };
   }, []);
 
+  const loadUsername = async () => {
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return;
+
+      const { data } = await supabase
+        .from("profiles")
+        .select("username")
+        .eq("id", session.user.id)
+        .single();
+
+      if (data) setUsername(data.username);
+    } catch (error) {
+      console.error("Failed to load username:", error);
+    }
+  };
+
   const loadMessages = async () => {
     try {
       const { data: { session } } = await supabase.auth.getSession();
@@ -53,6 +75,38 @@ export const SupportChat = ({ isAdmin = false }: { isAdmin?: boolean }) => {
 
       if (error) throw error;
       setMessages(data || []);
+
+      // Load read receipts
+      const { data: receipts } = await supabase
+        .from("message_read_receipts")
+        .select("message_id, user_id");
+
+      if (receipts) {
+        const receiptMap: Record<string, string[]> = {};
+        receipts.forEach(receipt => {
+          if (!receiptMap[receipt.message_id]) {
+            receiptMap[receipt.message_id] = [];
+          }
+          receiptMap[receipt.message_id].push(receipt.user_id);
+        });
+        setReadReceipts(receiptMap);
+      }
+
+      // Mark messages as read
+      data?.forEach(async (msg) => {
+        if (!msg.is_admin) {
+          const { error: receiptError } = await supabase
+            .from("message_read_receipts")
+            .upsert({
+              message_id: msg.id,
+              user_id: session.user.id,
+            }, {
+              onConflict: 'message_id,user_id'
+            });
+
+          if (receiptError) console.error("Failed to mark as read:", receiptError);
+        }
+      });
     } catch (error) {
       toast.error("Failed to load messages");
     } finally {
@@ -61,17 +115,19 @@ export const SupportChat = ({ isAdmin = false }: { isAdmin?: boolean }) => {
   };
 
   const handleSendMessage = async () => {
-    if (!newMessage.trim() && !imageFile) return;
+    if (!newMessage.trim() && !imageFile && !videoFile) return;
 
     try {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) return;
 
       let imageUrl = null;
+      let videoUrl = null;
+
+      setUploading(true);
 
       // Upload image if exists
       if (imageFile) {
-        setUploading(true);
         const fileExt = imageFile.name.split('.').pop();
         const fileName = `${Math.random()}.${fileExt}`;
         const { error: uploadError } = await supabase.storage
@@ -87,12 +143,31 @@ export const SupportChat = ({ isAdmin = false }: { isAdmin?: boolean }) => {
         imageUrl = publicUrl;
       }
 
+      // Upload video if exists
+      if (videoFile) {
+        const fileExt = videoFile.name.split('.').pop();
+        const fileName = `${Math.random()}.${fileExt}`;
+        const { error: uploadError } = await supabase.storage
+          .from('support-videos')
+          .upload(fileName, videoFile);
+
+        if (uploadError) throw uploadError;
+
+        const { data: { publicUrl } } = supabase.storage
+          .from('support-videos')
+          .getPublicUrl(fileName);
+
+        videoUrl = publicUrl;
+      }
+
       const { error } = await supabase
         .from("support_messages")
         .insert({
           user_id: session.user.id,
           message: newMessage,
           image_url: imageUrl,
+          video_url: videoUrl,
+          username: username,
           is_admin: isAdmin,
         });
 
@@ -100,6 +175,7 @@ export const SupportChat = ({ isAdmin = false }: { isAdmin?: boolean }) => {
 
       setNewMessage("");
       setImageFile(null);
+      setVideoFile(null);
       await loadMessages();
     } catch (error: any) {
       toast.error(error.message || "Failed to send message");
@@ -132,8 +208,11 @@ export const SupportChat = ({ isAdmin = false }: { isAdmin?: boolean }) => {
             {messages.map((msg) => (
               <div
                 key={msg.id}
-                className={`flex ${msg.is_admin ? "justify-end" : "justify-start"}`}
+                className={`flex flex-col ${msg.is_admin ? "items-end" : "items-start"}`}
               >
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="text-xs font-semibold">{msg.username || "Anonymous"}</span>
+                </div>
                 <div
                   className={`max-w-[80%] rounded-lg p-3 ${
                     msg.is_admin
@@ -148,10 +227,25 @@ export const SupportChat = ({ isAdmin = false }: { isAdmin?: boolean }) => {
                       className="rounded-md mb-2 max-w-full"
                     />
                   )}
+                  {msg.video_url && (
+                    <video
+                      src={msg.video_url}
+                      controls
+                      className="rounded-md mb-2 max-w-full"
+                    />
+                  )}
                   {msg.message && <p className="text-sm">{msg.message}</p>}
-                  <p className="text-xs opacity-70 mt-1">
-                    {new Date(msg.created_at).toLocaleString()}
-                  </p>
+                  <div className="flex items-center justify-between mt-1">
+                    <p className="text-xs opacity-70">
+                      {new Date(msg.created_at).toLocaleString()}
+                    </p>
+                    {isAdmin && readReceipts[msg.id] && (
+                      <div className="flex items-center gap-1">
+                        <CheckCheck className="h-3 w-3" />
+                        <span className="text-xs">{readReceipts[msg.id].length}</span>
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
             ))}
@@ -176,12 +270,27 @@ export const SupportChat = ({ isAdmin = false }: { isAdmin?: boolean }) => {
               >
                 <ImageIcon className="h-4 w-4" />
               </Button>
+              <Button
+                size="icon"
+                variant="outline"
+                onClick={() => document.getElementById("video-upload")?.click()}
+                disabled={uploading}
+              >
+                <Video className="h-4 w-4" />
+              </Button>
               <input
                 id="image-upload"
                 type="file"
                 accept="image/*"
                 className="hidden"
                 onChange={(e) => setImageFile(e.target.files?.[0] || null)}
+              />
+              <input
+                id="video-upload"
+                type="file"
+                accept="video/*"
+                className="hidden"
+                onChange={(e) => setVideoFile(e.target.files?.[0] || null)}
               />
               <Button onClick={handleSendMessage} disabled={uploading}>
                 {uploading ? (
@@ -191,9 +300,9 @@ export const SupportChat = ({ isAdmin = false }: { isAdmin?: boolean }) => {
                 )}
               </Button>
             </div>
-            {imageFile && (
+            {(imageFile || videoFile) && (
               <p className="text-sm text-muted-foreground">
-                Selected: {imageFile.name}
+                Selected: {imageFile?.name || videoFile?.name}
               </p>
             )}
           </div>

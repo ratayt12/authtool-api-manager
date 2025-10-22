@@ -42,7 +42,7 @@ serve(async (req) => {
       throw new Error('Key not found or unauthorized');
     }
 
-    // Block key in AuthTool API
+    // Block key in AuthTool API using correct endpoint
     const authToolApiKey = Deno.env.get('AUTHTOOL_API_KEY');
     if (!authToolApiKey) {
       console.error('AUTHTOOL_API_KEY not configured');
@@ -50,24 +50,25 @@ serve(async (req) => {
     }
 
     try {
-      const authToolResponse = await fetch('https://api.auth.gg/v1/blockkey', {
-        method: 'POST',
+      const authToolResponse = await fetch(`https://api.authtool.app/public/v1/key/${keyCode}/change-status`, {
+        method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
+          'X-API-Key': authToolApiKey,
         },
         body: JSON.stringify({
-          type: 'blockkey',
-          authorization: authToolApiKey,
-          key: keyCode,
+          status: 0, // 0 = Disabled/Blocked
         }),
       });
 
-      const authToolResult = await authToolResponse.json();
-      
-      if (authToolResult.status !== 'success') {
-        console.error('AuthTool API error:', authToolResult);
-        throw new Error(authToolResult.message || 'Failed to block key in AuthTool');
+      if (!authToolResponse.ok) {
+        const errorText = await authToolResponse.text();
+        console.error('AuthTool API error:', errorText);
+        throw new Error('Failed to block key in AuthTool');
       }
+
+      const authToolResult = await authToolResponse.json();
+      console.log('AuthTool block response:', authToolResult);
     } catch (error) {
       console.error('Error calling AuthTool API:', error);
       throw new Error('Failed to block key in AuthTool API');

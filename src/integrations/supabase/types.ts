@@ -64,6 +64,68 @@ export type Database = {
           },
         ]
       }
+      message_read_receipts: {
+        Row: {
+          id: string
+          message_id: string
+          read_at: string
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          message_id: string
+          read_at?: string
+          user_id: string
+        }
+        Update: {
+          id?: string
+          message_id?: string
+          read_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "message_read_receipts_message_id_fkey"
+            columns: ["message_id"]
+            isOneToOne: false
+            referencedRelation: "support_messages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      private_messages: {
+        Row: {
+          created_at: string
+          id: string
+          image_url: string | null
+          is_read: boolean
+          message: string | null
+          sender_name: string
+          user_id: string
+          video_url: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          image_url?: string | null
+          is_read?: boolean
+          message?: string | null
+          sender_name?: string
+          user_id: string
+          video_url?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          image_url?: string | null
+          is_read?: boolean
+          message?: string | null
+          sender_name?: string
+          user_id?: string
+          video_url?: string | null
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           approval_status: Database["public"]["Enums"]["approval_status"]
@@ -105,6 +167,8 @@ export type Database = {
           is_admin: boolean
           message: string | null
           user_id: string
+          username: string | null
+          video_url: string | null
         }
         Insert: {
           created_at?: string
@@ -113,6 +177,8 @@ export type Database = {
           is_admin?: boolean
           message?: string | null
           user_id: string
+          username?: string | null
+          video_url?: string | null
         }
         Update: {
           created_at?: string
@@ -121,6 +187,68 @@ export type Database = {
           is_admin?: boolean
           message?: string | null
           user_id?: string
+          username?: string | null
+          video_url?: string | null
+        }
+        Relationships: []
+      }
+      user_actions: {
+        Row: {
+          action_details: Json | null
+          action_type: string
+          created_at: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          action_details?: Json | null
+          action_type: string
+          created_at?: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          action_details?: Json | null
+          action_type?: string
+          created_at?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_requests: {
+        Row: {
+          created_at: string
+          details: Json | null
+          id: string
+          key_code: string | null
+          request_type: string
+          status: string
+          udid: string | null
+          user_id: string
+          username: string
+        }
+        Insert: {
+          created_at?: string
+          details?: Json | null
+          id?: string
+          key_code?: string | null
+          request_type: string
+          status?: string
+          udid?: string | null
+          user_id: string
+          username: string
+        }
+        Update: {
+          created_at?: string
+          details?: Json | null
+          id?: string
+          key_code?: string | null
+          request_type?: string
+          status?: string
+          udid?: string | null
+          user_id?: string
+          username?: string
         }
         Relationships: []
       }
@@ -149,6 +277,39 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      user_sessions: {
+        Row: {
+          approved_by: string | null
+          created_at: string
+          device_fingerprint: string
+          device_info: Json
+          id: string
+          is_approved: boolean
+          last_active: string
+          user_id: string
+        }
+        Insert: {
+          approved_by?: string | null
+          created_at?: string
+          device_fingerprint: string
+          device_info: Json
+          id?: string
+          is_approved?: boolean
+          last_active?: string
+          user_id: string
+        }
+        Update: {
+          approved_by?: string | null
+          created_at?: string
+          device_fingerprint?: string
+          device_info?: Json
+          id?: string
+          is_approved?: boolean
+          last_active?: string
+          user_id?: string
+        }
+        Relationships: []
       }
     }
     Views: {

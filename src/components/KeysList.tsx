@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { Loader2, RefreshCw, Trash2, Info, Ban, Shield, Lock, Unlock } from "lucide-react";
 import { KeyDetailsDialog } from "./KeyDetailsDialog";
+import { RequestActions } from "./RequestActions";
 
 interface Key {
   id: string;
@@ -246,24 +247,9 @@ export const KeysList = () => {
                           </Button>
                         )}
                       </div>
-                      <div className="flex gap-2 flex-wrap">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => loadDevices(key.key_code)}
-                        >
-                          <Shield className="h-4 w-4 mr-1" />
-                          <span className="hidden sm:inline">Manage UDIDs</span>
-                        </Button>
-                        <Button
-                          variant="destructive"
-                          size="sm"
-                          onClick={() => handleDelete(key.key_code)}
-                        >
-                          <Trash2 className="h-4 w-4 mr-1" />
-                          <span className="hidden sm:inline">Delete</span>
-                        </Button>
-                      </div>
+                    </div>
+                  </div>
+                  <RequestActions keyCode={key.key_code} onComplete={loadKeys} />
                     </div>
                   </div>
                 </CardContent>
