@@ -245,15 +245,13 @@ export const KeysList = () => {
                             <Lock className="h-4 w-4 mr-1" />
                             <span className="hidden sm:inline">Block</span>
                           </Button>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                  <RequestActions keyCode={key.key_code} onComplete={loadKeys} />
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+                  )}
+                </div>
+              </div>
+            </div>
+            <RequestActions keyCode={key.key_code} onComplete={loadKeys} />
+          </CardContent>
+        </Card>
             ))}
           </div>
         )}
