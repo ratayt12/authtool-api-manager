@@ -7,6 +7,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { SupportChat } from "@/components/SupportChat";
+import { UserRequestsPanel } from "@/components/UserRequestsPanel";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
@@ -345,6 +346,8 @@ const Admin = () => {
           </CardContent>
         </Card>
 
+        <UserRequestsPanel />
+        
         <SupportChat isAdmin={true} />
 
         <Dialog open={banDialogOpen} onOpenChange={setBanDialogOpen}>
