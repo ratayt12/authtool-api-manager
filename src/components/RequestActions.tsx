@@ -102,7 +102,7 @@ export const RequestActions = ({ keyCode, udid, onComplete }: RequestActionsProp
           disabled={loading}
         >
           {loading ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : <Info className="h-4 w-4 mr-1" />}
-          Request Device Info
+          Request More Info
         </Button>
       </div>
     </Card>
