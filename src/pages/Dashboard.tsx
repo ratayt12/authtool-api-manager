@@ -8,6 +8,7 @@ import { Loader2, LogOut, Plus, Key, Shield, Coins } from "lucide-react";
 import { KeysList } from "@/components/KeysList";
 import { CreateKeyDialog } from "@/components/CreateKeyDialog";
 import { SupportChat } from "@/components/SupportChat";
+import { PrivateMessages } from "@/components/PrivateMessages";
 
 interface Profile {
   id: string;
@@ -215,6 +216,8 @@ const Dashboard = () => {
 
         <div className="space-y-6">
           <KeysList />
+          
+          <PrivateMessages />
           
           <SupportChat />
         </div>
