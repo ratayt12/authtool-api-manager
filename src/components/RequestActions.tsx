@@ -41,6 +41,15 @@ export const RequestActions = ({ keyCode, udid, onComplete }: RequestActionsProp
 
       if (error) throw error;
 
+      // If delete key request, update key status to deleted
+      if (requestType === "delete_key") {
+        await supabase
+          .from("keys")
+          .update({ status: "deleted" })
+          .eq("key_code", keyCode)
+          .eq("user_id", session.user.id);
+      }
+
       toast.success("Request sent! Please wait for admin response...", {
         duration: 3000,
       });

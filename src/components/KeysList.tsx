@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { Loader2, RefreshCw, Trash2, Info, Ban, Shield, Lock, Unlock } from "lucide-react";
 import { KeyDetailsDialog } from "./KeyDetailsDialog";
 import { RequestActions } from "./RequestActions";
+import { KeyPrivateMessages } from "./KeyPrivateMessages";
 
 interface Key {
   id: string;
@@ -120,8 +121,20 @@ export const KeysList = () => {
 
       if (error) throw error;
 
-      setDevices(data.devices || []);
+      const deviceList = data.data || [];
+      setDevices(deviceList);
       setSelectedKey(keyCode);
+
+      // Update activate_count based on actual devices
+      const activeCount = deviceList.filter((d: Device) => d.status === 1 && !d.isExpired).length;
+      await supabase
+        .from("keys")
+        .update({ activate_count: activeCount })
+        .eq("key_code", keyCode)
+        .eq("user_id", session.user.id);
+
+      // Reload keys to update the display
+      await loadKeys();
     } catch (error: any) {
       toast.error(error.message || "Failed to load devices");
     }
@@ -201,9 +214,15 @@ export const KeysList = () => {
                         <code className="text-sm font-mono bg-muted px-2 py-1 rounded">
                           {key.key_code}
                         </code>
-                        <Badge variant={key.status === "active" ? "default" : "secondary"}>
+                        <Badge variant={
+                          key.status === "deleted" ? "outline" :
+                          key.status === "active" ? "default" : 
+                          key.status === "blocked" ? "destructive" : 
+                          "secondary"
+                        }>
                           {key.status}
                         </Badge>
+                        <KeyPrivateMessages keyCode={key.key_code} />
                       </div>
                       <div className="text-sm text-muted-foreground space-y-1">
                         <p>Duration: <span className="text-foreground font-medium">{key.duration}</span></p>
@@ -214,7 +233,11 @@ export const KeysList = () => {
                     <div className="flex flex-col gap-2">
                       <div className="flex gap-2 flex-wrap">
                         <KeyDetailsDialog keyCode={key.key_code}>
-                          <Button variant="outline" size="sm">
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            disabled={key.status === "deleted"}
+                          >
                             <Info className="h-4 w-4 mr-1" />
                             <span className="hidden sm:inline">Details</span>
                           </Button>
@@ -223,6 +246,7 @@ export const KeysList = () => {
                           variant="outline"
                           size="sm"
                           onClick={() => handleReset(key.key_code)}
+                          disabled={key.status === "deleted" || key.status === "blocked"}
                         >
                           <RefreshCw className="h-4 w-4 mr-1" />
                           <span className="hidden sm:inline">Reset</span>
@@ -235,6 +259,15 @@ export const KeysList = () => {
                           >
                             <Unlock className="h-4 w-4 mr-1" />
                             <span className="hidden sm:inline">Unblock</span>
+                          </Button>
+                        ) : key.status === "deleted" ? (
+                          <Button
+                            variant="secondary"
+                            size="sm"
+                            disabled
+                          >
+                            <Lock className="h-4 w-4 mr-1" />
+                            <span className="hidden sm:inline">Block</span>
                           </Button>
                         ) : (
                           <Button
