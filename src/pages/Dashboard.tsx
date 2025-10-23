@@ -150,7 +150,7 @@ const Dashboard = () => {
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
           <div>
             <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-              Sonic Reseller Dashboard
+              Sonic Api
             </h1>
             <p className="text-muted-foreground mt-1">
               Welcome back, {profile?.username}
