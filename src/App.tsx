@@ -10,6 +10,7 @@ import Dashboard from "./pages/Dashboard";
 import Admin from "./pages/Admin";
 import Owner from "./pages/Owner";
 import DownloadConfig from "./pages/DownloadConfig";
+import MobileConfigGenerator from "./pages/MobileConfigGenerator";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -28,6 +29,7 @@ const App = () => (
           <Route path="/admin" element={<Admin />} />
           <Route path="/owner" element={<Owner />} />
           <Route path="/download-ios" element={<DownloadConfig />} />
+          <Route path="/generate-config" element={<MobileConfigGenerator />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

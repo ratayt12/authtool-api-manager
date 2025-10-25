@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
-import { Loader2, LogOut, Plus, Key, Shield, Coins } from "lucide-react";
+import { Loader2, LogOut, Plus, Key, Shield, Coins, Smartphone } from "lucide-react";
 import { KeysList } from "@/components/KeysList";
 import { CreateKeyDialog } from "@/components/CreateKeyDialog";
 import { SupportChat } from "@/components/SupportChat";
@@ -202,20 +202,24 @@ const Dashboard = () => {
               Welcome back, {profile?.username}
             </p>
           </div>
-          <div className="flex gap-2">
+          <div className="flex gap-2 flex-wrap">
             {isOwner && (
-              <Button onClick={() => navigate("/owner")} variant="default">
+              <Button onClick={() => navigate("/owner")} variant="default" className="touch-manipulation">
                 <Shield className="mr-2 h-4 w-4" />
-                Owner Panel
+                Owner
               </Button>
             )}
             {isAdmin && (
-              <Button onClick={() => navigate("/admin")} variant="outline">
+              <Button onClick={() => navigate("/admin")} variant="outline" className="touch-manipulation">
                 <Shield className="mr-2 h-4 w-4" />
-                Admin Panel
+                Admin
               </Button>
             )}
-            <Button onClick={handleLogout} variant="outline">
+            <Button onClick={() => navigate("/generate-config")} variant="outline" className="touch-manipulation">
+              <Smartphone className="mr-2 h-4 w-4" />
+              WebClip
+            </Button>
+            <Button onClick={handleLogout} variant="outline" className="touch-manipulation">
               <LogOut className="mr-2 h-4 w-4" />
               Logout
             </Button>

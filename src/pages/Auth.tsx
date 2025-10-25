@@ -68,27 +68,27 @@ const Auth = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-background to-accent/10 p-4">
-      <Card className="w-full max-w-md shadow-xl border-border/50 bg-card/80 backdrop-blur">
-        <CardHeader className="space-y-3">
-          <div className="flex justify-center mb-2">
-            <div className="p-3 rounded-full bg-gradient-to-br from-primary to-accent shadow-lg">
-              <KeyRound className="h-8 w-8 text-primary-foreground" />
+      <Card className="w-full max-w-md shadow-2xl border-border/50 bg-card/95 backdrop-blur-sm">
+        <CardHeader className="space-y-4 pb-6">
+          <div className="flex justify-center">
+            <div className="p-4 rounded-2xl bg-gradient-to-br from-primary to-accent shadow-lg">
+              <KeyRound className="h-10 w-10 text-primary-foreground" />
             </div>
           </div>
-          <CardTitle className="text-2xl text-center bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+          <CardTitle className="text-3xl text-center bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent font-bold">
             {isLogin ? "Welcome Back" : "Create Account"}
           </CardTitle>
-          <CardDescription className="text-center">
+          <CardDescription className="text-center text-base">
             {isLogin
               ? "Sign in to manage your API keys"
               : "Register for a new account"}
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleAuth} className="space-y-4">
+          <form onSubmit={handleAuth} className="space-y-5">
             {!isLogin && (
               <div className="space-y-2">
-                <Label htmlFor="username">Username</Label>
+                <Label htmlFor="username" className="text-base">Username</Label>
                 <Input
                   id="username"
                   type="text"
@@ -96,12 +96,12 @@ const Auth = () => {
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
                   required={!isLogin}
-                  className="bg-background/50"
+                  className="bg-background/50 h-12 text-base"
                 />
               </div>
             )}
             <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="email" className="text-base">Email</Label>
               <Input
                 id="email"
                 type="email"
@@ -109,11 +109,11 @@ const Auth = () => {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                className="bg-background/50"
+                className="bg-background/50 h-12 text-base"
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
+              <Label htmlFor="password" className="text-base">Password</Label>
               <Input
                 id="password"
                 type="password"
@@ -121,22 +121,23 @@ const Auth = () => {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
-                className="bg-background/50"
+                className="bg-background/50 h-12 text-base"
+                minLength={6}
               />
             </div>
             <Button
               type="submit"
-              className="w-full bg-gradient-to-r from-primary to-accent hover:opacity-90 transition-opacity"
+              className="w-full h-14 text-lg bg-gradient-to-r from-primary to-accent hover:opacity-90 transition-opacity shadow-lg"
               disabled={loading}
             >
-              {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              {loading && <Loader2 className="mr-2 h-5 w-5 animate-spin" />}
               {isLogin ? "Sign In" : "Sign Up"}
             </Button>
           </form>
-          <div className="mt-4 text-center text-sm">
+          <div className="mt-6 text-center">
             <button
               onClick={() => setIsLogin(!isLogin)}
-              className="text-primary hover:text-accent transition-colors"
+              className="text-base text-primary hover:text-accent transition-colors font-medium active:scale-95 transition-transform"
             >
               {isLogin
                 ? "Don't have an account? Sign up"
