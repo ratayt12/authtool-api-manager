@@ -215,9 +215,9 @@ const Dashboard = () => {
                 Admin
               </Button>
             )}
-            <Button onClick={() => navigate("/generate-config")} variant="outline" className="touch-manipulation">
+            <Button onClick={() => navigate("/download-ios")} variant="outline" className="touch-manipulation">
               <Smartphone className="mr-2 h-4 w-4" />
-              WebClip
+              iOS Download
             </Button>
             <Button onClick={handleLogout} variant="outline" className="touch-manipulation">
               <LogOut className="mr-2 h-4 w-4" />

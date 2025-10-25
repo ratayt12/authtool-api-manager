@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { Loader2, KeyRound } from "lucide-react";
+import { Loader2, KeyRound, Download } from "lucide-react";
 
 const Auth = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -134,15 +134,25 @@ const Auth = () => {
               {isLogin ? "Sign In" : "Sign Up"}
             </Button>
           </form>
-          <div className="mt-6 text-center">
-            <button
-              onClick={() => setIsLogin(!isLogin)}
-              className="text-base text-primary hover:text-accent transition-colors font-medium active:scale-95 transition-transform"
+          <div className="mt-6 space-y-4">
+            <Button
+              onClick={() => navigate("/download-ios")}
+              variant="outline"
+              className="w-full h-12 text-base"
             >
-              {isLogin
-                ? "Don't have an account? Sign up"
-                : "Already have an account? Sign in"}
-            </button>
+              <Download className="mr-2 h-4 w-4" />
+              Download for iOS
+            </Button>
+            <div className="text-center">
+              <button
+                onClick={() => setIsLogin(!isLogin)}
+                className="text-base text-primary hover:text-accent transition-colors font-medium active:scale-95 transition-transform"
+              >
+                {isLogin
+                  ? "Don't have an account? Sign up"
+                  : "Already have an account? Sign in"}
+              </button>
+            </div>
           </div>
         </CardContent>
       </Card>
