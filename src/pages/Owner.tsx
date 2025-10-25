@@ -10,6 +10,7 @@ import { SupportChat } from "@/components/SupportChat";
 import { UserRequestsPanel } from "@/components/UserRequestsPanel";
 import { AdminDeviceAuthPanel } from "@/components/AdminDeviceAuthPanel";
 import { AdminUserKeysViewer } from "@/components/AdminUserKeysViewer";
+import { UserDeviceInfoPanel } from "@/components/UserDeviceInfoPanel";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
@@ -439,6 +440,8 @@ const Owner = () => {
         </Card>
 
         <UserRequestsPanel />
+
+        <UserDeviceInfoPanel />
 
         <AdminDeviceAuthPanel />
 
