@@ -45,31 +45,32 @@ serve(async (req) => {
       throw new Error('Target user ID is required');
     }
 
-    // Create admin client with service role key
-    const adminClient = createClient(supabaseUrl, supabaseServiceKey, {
-      auth: {
-        autoRefreshToken: false,
-        persistSession: false
-      }
-    });
+    // Instead of trying to invalidate JWT tokens (which Supabase doesn't support directly),
+    // we'll delete all their device sessions, forcing them to re-authenticate and re-authorize
+    const { error: deleteError } = await supabase
+      .from('device_sessions')
+      .delete()
+      .eq('user_id', targetUserId);
 
-    // Call the Supabase Auth Admin API directly to sign out all sessions
-    // This uses the REST API endpoint which works reliably
-    const signoutUrl = `${supabaseUrl}/auth/v1/admin/users/${targetUserId}/sessions`;
-    
-    const response = await fetch(signoutUrl, {
-      method: 'DELETE',
-      headers: {
-        'Authorization': `Bearer ${supabaseServiceKey}`,
-        'apikey': supabaseServiceKey,
-        'Content-Type': 'application/json',
-      },
-    });
+    if (deleteError) {
+      console.error('Error deleting device sessions:', deleteError);
+      throw new Error(`Failed to remove device sessions: ${deleteError.message}`);
+    }
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('Error signing out user:', response.status, errorText);
-      throw new Error(`Failed to sign out user: ${errorText}`);
+    // Also temporarily ban them for 1 minute to force immediate logout
+    const banUntil = new Date();
+    banUntil.setMinutes(banUntil.getMinutes() + 1);
+
+    const { error: banError } = await supabase
+      .from('profiles')
+      .update({
+        ban_until: banUntil.toISOString(),
+        ban_message: 'Session invalidated by administrator. Please log in again.'
+      })
+      .eq('id', targetUserId);
+
+    if (banError) {
+      console.error('Error applying temporary ban:', banError);
     }
 
     console.log(`User ${targetUserId} has been logged out by ${user.id}`);

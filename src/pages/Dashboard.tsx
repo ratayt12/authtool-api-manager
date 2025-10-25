@@ -51,6 +51,51 @@ const Dashboard = () => {
 
       setProfile(profileData);
 
+      // Check device authorization - get current device fingerprint
+      const getDeviceFingerprint = () => {
+        const nav = navigator as any;
+        const screen = window.screen;
+        
+        const fingerprint = {
+          userAgent: navigator.userAgent,
+          language: navigator.language,
+          platform: navigator.platform,
+          screenResolution: `${screen.width}x${screen.height}`,
+          colorDepth: screen.colorDepth,
+          timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+          hardwareConcurrency: nav.hardwareConcurrency || 'unknown',
+          deviceMemory: nav.deviceMemory || 'unknown',
+        };
+
+        const fingerprintString = JSON.stringify(fingerprint);
+        let hash = 0;
+        for (let i = 0; i < fingerprintString.length; i++) {
+          const char = fingerprintString.charCodeAt(i);
+          hash = ((hash << 5) - hash) + char;
+          hash = hash & hash;
+        }
+        
+        return Math.abs(hash).toString(36);
+      };
+
+      const deviceFingerprint = getDeviceFingerprint();
+
+      // Check if this device is approved
+      const { data: deviceSession } = await supabase
+        .from('device_sessions')
+        .select('*')
+        .eq('user_id', session.user.id)
+        .eq('device_fingerprint', deviceFingerprint)
+        .maybeSingle();
+
+      // If device exists but not approved, sign them out
+      if (deviceSession && !deviceSession.is_approved) {
+        await supabase.auth.signOut();
+        toast.error("This device needs admin approval. Please wait for authorization.");
+        navigate("/auth");
+        return;
+      }
+
       // Check if user is admin or owner
       const { data: roleData } = await supabase
         .from("user_roles")
