@@ -45,12 +45,31 @@ serve(async (req) => {
       throw new Error('Target user ID is required');
     }
 
-    // Sign out the target user by deleting their sessions
-    const { error: signOutError } = await supabase.auth.admin.signOut(targetUserId);
+    // Create admin client with service role key
+    const adminClient = createClient(supabaseUrl, supabaseServiceKey, {
+      auth: {
+        autoRefreshToken: false,
+        persistSession: false
+      }
+    });
 
-    if (signOutError) {
-      console.error('Error signing out user:', signOutError);
-      throw new Error(`Failed to sign out user: ${signOutError.message}`);
+    // Call the Supabase Auth Admin API directly to sign out all sessions
+    // This uses the REST API endpoint which works reliably
+    const signoutUrl = `${supabaseUrl}/auth/v1/admin/users/${targetUserId}/sessions`;
+    
+    const response = await fetch(signoutUrl, {
+      method: 'DELETE',
+      headers: {
+        'Authorization': `Bearer ${supabaseServiceKey}`,
+        'apikey': supabaseServiceKey,
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('Error signing out user:', response.status, errorText);
+      throw new Error(`Failed to sign out user: ${errorText}`);
     }
 
     console.log(`User ${targetUserId} has been logged out by ${user.id}`);
