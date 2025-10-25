@@ -229,11 +229,16 @@ const Owner = () => {
     if (!confirm("Force logout this user? They will need to sign in again.")) return;
 
     try {
-      const { error } = await supabase.auth.admin.signOut(userId);
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return;
+
+      const { error } = await supabase.functions.invoke("force-logout", {
+        body: { targetUserId: userId },
+      });
 
       if (error) throw error;
 
-      toast.success("User has been logged out");
+      toast.success("User has been logged out successfully");
     } catch (error: any) {
       toast.error(error.message || "Failed to force logout");
     }
