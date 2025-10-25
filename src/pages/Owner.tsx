@@ -15,7 +15,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { Loader2, ArrowLeft, Check, X, Ban, Shield } from "lucide-react";
+import { Loader2, ArrowLeft, Check, X, Ban, Shield, LogOut } from "lucide-react";
 
 interface User {
   id: string;
@@ -225,6 +225,20 @@ const Owner = () => {
     }
   };
 
+  const handleForceLogout = async (userId: string) => {
+    if (!confirm("Force logout this user? They will need to sign in again.")) return;
+
+    try {
+      const { error } = await supabase.auth.admin.signOut(userId);
+
+      if (error) throw error;
+
+      toast.success("User has been logged out");
+    } catch (error: any) {
+      toast.error(error.message || "Failed to force logout");
+    }
+  };
+
   const isUserBanned = (user: User) => {
     if (!user.ban_until) return false;
     return new Date(user.ban_until) > new Date();
@@ -401,6 +415,15 @@ const Owner = () => {
                             <Ban className="h-4 w-4" />
                           </Button>
                         )}
+                        
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => handleForceLogout(user.id)}
+                          title="Force Logout"
+                        >
+                          <LogOut className="h-4 w-4" />
+                        </Button>
                       </TableCell>
                     </TableRow>
                   ))}

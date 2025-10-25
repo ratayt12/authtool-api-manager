@@ -199,7 +199,19 @@ export const SupportChat = ({ isAdmin = false }: { isAdmin?: boolean }) => {
       <CardHeader>
         <CardTitle>Support Chat</CardTitle>
         <CardDescription>
-          {isAdmin ? "Respond to user inquiries" : "Chat with support (view only)"}
+          {isAdmin ? "Respond to user inquiries" : (
+            <>
+              Chat with support or{" "}
+              <a 
+                href="https://t.me/yowxios" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="text-primary hover:underline font-medium"
+              >
+                contact us on Telegram 📱
+              </a>
+            </>
+          )}
         </CardDescription>
       </CardHeader>
       <CardContent>
