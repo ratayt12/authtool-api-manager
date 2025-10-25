@@ -3,8 +3,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
-import { Loader2, RefreshCw, Trash2, Info, Ban, Shield, Lock, Unlock } from "lucide-react";
+import { Loader2, RefreshCw, Trash2, Info, Ban, Shield, Lock, Unlock, Search } from "lucide-react";
 import { KeyDetailsDialog } from "./KeyDetailsDialog";
 import { RequestActions } from "./RequestActions";
 import { KeyPrivateMessages } from "./KeyPrivateMessages";
@@ -31,6 +32,7 @@ export const KeysList = () => {
   const [loading, setLoading] = useState(true);
   const [selectedKey, setSelectedKey] = useState<string | null>(null);
   const [devices, setDevices] = useState<Device[]>([]);
+  const [searchQuery, setSearchQuery] = useState("");
 
   useEffect(() => {
     loadKeys();
@@ -121,12 +123,15 @@ export const KeysList = () => {
 
       if (error) throw error;
 
-      const deviceList = data.data || [];
+      // Handle the response structure from the new API
+      const keyDetails = data.key || {};
+      const deviceList = data.devices || [];
+      
       setDevices(deviceList);
       setSelectedKey(keyCode);
 
-      // Update activate_count based on actual devices
-      const activeCount = deviceList.filter((d: Device) => d.status === 1 && !d.isExpired).length;
+      // Update activate_count from the API response
+      const activeCount = keyDetails.activateCount || 0;
       await supabase
         .from("keys")
         .update({ activate_count: activeCount })
@@ -199,13 +204,28 @@ export const KeysList = () => {
         </CardDescription>
       </CardHeader>
       <CardContent>
+        <div className="mb-4">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Search keys..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-10"
+            />
+          </div>
+        </div>
         {keys.length === 0 ? (
           <div className="text-center py-8 text-muted-foreground">
             No keys created yet. Create your first key to get started!
           </div>
         ) : (
           <div className="space-y-4">
-            {keys.map((key) => (
+            {keys.filter(key => 
+              key.key_code.toLowerCase().includes(searchQuery.toLowerCase()) ||
+              key.duration.toLowerCase().includes(searchQuery.toLowerCase()) ||
+              key.status.toLowerCase().includes(searchQuery.toLowerCase())
+            ).map((key) => (
               <Card key={key.id} className="bg-card/50">
                 <CardContent className="p-4">
                   <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
@@ -279,10 +299,18 @@ export const KeysList = () => {
                             <span className="hidden sm:inline">Block</span>
                           </Button>
                         )}
+                        <Button
+                          variant="destructive"
+                          size="sm"
+                          onClick={() => handleDelete(key.key_code)}
+                          disabled={key.status === "deleted"}
+                        >
+                          <Trash2 className="h-4 w-4 mr-1" />
+                          <span className="hidden sm:inline">Delete</span>
+                        </Button>
                       </div>
                     </div>
                   </div>
-                  <RequestActions keyCode={key.key_code} onComplete={loadKeys} />
                 </CardContent>
               </Card>
             ))}

@@ -42,7 +42,7 @@ serve(async (req) => {
       throw new Error('Key not found or unauthorized');
     }
 
-    // Delete from AuthTool API first
+    // Delete from AuthTool API first using new API
     const authToolApiKey = Deno.env.get('AUTHTOOL_API_KEY');
     if (!authToolApiKey) {
       console.error('AUTHTOOL_API_KEY not configured');
@@ -50,24 +50,22 @@ serve(async (req) => {
     }
 
     try {
-      const authToolResponse = await fetch('https://api.auth.gg/v1/deletekey', {
-        method: 'POST',
+      const authToolResponse = await fetch(`https://api.authtool.app/public/v1/key/${keyCode}`, {
+        method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',
+          'X-API-Key': authToolApiKey,
         },
-        body: JSON.stringify({
-          type: 'deletekey',
-          authorization: authToolApiKey,
-          key: keyCode,
-        }),
       });
 
-      const authToolResult = await authToolResponse.json();
-      
-      if (authToolResult.status !== 'success') {
-        console.error('AuthTool API error:', authToolResult);
-        throw new Error(authToolResult.message || 'Failed to delete key from AuthTool');
+      if (!authToolResponse.ok) {
+        const errorText = await authToolResponse.text();
+        console.error('AuthTool API error:', authToolResponse.status, errorText);
+        throw new Error(`Failed to delete key from AuthTool: ${errorText}`);
       }
+
+      const authToolResult = await authToolResponse.json();
+      console.log('Key deleted from AuthTool:', authToolResult);
     } catch (error) {
       console.error('Error calling AuthTool API:', error);
       throw new Error('Failed to delete key from AuthTool API');

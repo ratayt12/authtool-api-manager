@@ -8,6 +8,8 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { SupportChat } from "@/components/SupportChat";
 import { UserRequestsPanel } from "@/components/UserRequestsPanel";
+import { AdminDeviceAuthPanel } from "@/components/AdminDeviceAuthPanel";
+import { AdminUserKeysViewer } from "@/components/AdminUserKeysViewer";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
@@ -409,6 +411,10 @@ const Owner = () => {
         </Card>
 
         <UserRequestsPanel />
+
+        <AdminDeviceAuthPanel />
+
+        <AdminUserKeysViewer />
         
         <SupportChat isAdmin={true} />
 

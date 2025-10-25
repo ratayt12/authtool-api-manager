@@ -14,6 +14,42 @@ export type Database = {
   }
   public: {
     Tables: {
+      device_sessions: {
+        Row: {
+          approved_by: string | null
+          created_at: string
+          device_fingerprint: string
+          device_info: Json
+          id: string
+          ip_address: string | null
+          is_approved: boolean
+          last_active: string
+          user_id: string
+        }
+        Insert: {
+          approved_by?: string | null
+          created_at?: string
+          device_fingerprint: string
+          device_info?: Json
+          id?: string
+          ip_address?: string | null
+          is_approved?: boolean
+          last_active?: string
+          user_id: string
+        }
+        Update: {
+          approved_by?: string | null
+          created_at?: string
+          device_fingerprint?: string
+          device_info?: Json
+          id?: string
+          ip_address?: string | null
+          is_approved?: boolean
+          last_active?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       keys: {
         Row: {
           activate_count: number

@@ -41,15 +41,6 @@ export const RequestActions = ({ keyCode, udid, onComplete }: RequestActionsProp
 
       if (error) throw error;
 
-      // If delete key request, update key status to deleted
-      if (requestType === "delete_key") {
-        await supabase
-          .from("keys")
-          .update({ status: "deleted" })
-          .eq("key_code", keyCode)
-          .eq("user_id", session.user.id);
-      }
-
       toast.success("Request sent! Please wait for admin response...", {
         duration: 3000,
       });
@@ -75,15 +66,6 @@ export const RequestActions = ({ keyCode, udid, onComplete }: RequestActionsProp
     <Card className="p-4 space-y-2 bg-muted/30">
       <p className="text-sm font-medium mb-2">Request Actions</p>
       <div className="flex gap-2 flex-wrap">
-        <Button
-          variant="destructive"
-          size="sm"
-          onClick={() => createRequest("delete_key")}
-          disabled={loading}
-        >
-          {loading ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : <Trash2 className="h-4 w-4 mr-1" />}
-          Request Delete Key
-        </Button>
         {udid && (
           <Button
             variant="outline"

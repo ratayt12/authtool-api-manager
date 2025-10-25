@@ -9,6 +9,7 @@ import { KeysList } from "@/components/KeysList";
 import { CreateKeyDialog } from "@/components/CreateKeyDialog";
 import { SupportChat } from "@/components/SupportChat";
 import { PrivateMessages } from "@/components/PrivateMessages";
+import { DeviceAuthPanel } from "@/components/DeviceAuthPanel";
 
 interface Profile {
   id: string;
@@ -216,6 +217,8 @@ const Dashboard = () => {
 
         <div className="space-y-6">
           <KeysList />
+          
+          <DeviceAuthPanel />
           
           <PrivateMessages />
           
