@@ -5,7 +5,15 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
-import { Loader2, Palette, Lock, User } from "lucide-react";
+import { Loader2, Palette, Lock, User, Globe, Shield } from "lucide-react";
+import { useLanguage } from "@/contexts/LanguageContext";
+import { 
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface ProfileSettingsProps {
   profile: {
@@ -31,6 +39,8 @@ export const ProfileSettings = ({ profile, onProfileUpdate }: ProfileSettingsPro
   const [backgroundColor, setBackgroundColor] = useState(profile.background_color || "240 10% 3.9%");
   const [canChangeUsername, setCanChangeUsername] = useState(true);
   const [daysUntilUsernameChange, setDaysUntilUsernameChange] = useState(0);
+  const [hasMFA, setHasMFA] = useState(false);
+  const { language, setLanguage, t } = useLanguage();
 
   useEffect(() => {
     if (profile.last_username_change) {
@@ -44,7 +54,22 @@ export const ProfileSettings = ({ profile, onProfileUpdate }: ProfileSettingsPro
         setDaysUntilUsernameChange(daysRemaining);
       }
     }
+
+    // Check if user has MFA enabled
+    checkMFAStatus();
   }, [profile.last_username_change]);
+
+  const checkMFAStatus = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const factors = await supabase.auth.mfa.listFactors();
+        setHasMFA(factors.data && factors.data.totp && factors.data.totp.length > 0);
+      }
+    } catch (error) {
+      console.error("Error checking MFA status:", error);
+    }
+  };
 
   const handleUsernameChange = async () => {
     if (!canChangeUsername) {
@@ -190,6 +215,30 @@ export const ProfileSettings = ({ profile, onProfileUpdate }: ProfileSettingsPro
     return `${Math.round(h * 360)} ${Math.round(s * 100)}% ${Math.round(l * 100)}%`;
   };
 
+  const handleEnableGoogleAuth = async () => {
+    setLoading(true);
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          queryParams: {
+            access_type: 'offline',
+            prompt: 'consent',
+          },
+          redirectTo: `${window.location.origin}/dashboard`,
+        },
+      });
+
+      if (error) throw error;
+      toast.success("Redirecting to Google for authentication...");
+    } catch (error: any) {
+      toast.error("Failed to setup Google authentication");
+      console.error(error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* Theme Colors */}
@@ -317,6 +366,86 @@ export const ProfileSettings = ({ profile, onProfileUpdate }: ProfileSettingsPro
             {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             Update Password
           </Button>
+        </CardContent>
+      </Card>
+
+      {/* Language Selection */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Globe className="h-5 w-5" />
+            Language Preference
+          </CardTitle>
+          <CardDescription>Choose your preferred language</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="language">Language</Label>
+            <Select value={language} onValueChange={(value: any) => setLanguage(value)}>
+              <SelectTrigger id="language">
+                <SelectValue placeholder="Select language" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="en">English</SelectItem>
+                <SelectItem value="es">Español</SelectItem>
+                <SelectItem value="pt">Português</SelectItem>
+                <SelectItem value="vi">Tiếng Việt</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* 2FA Setup with Google Auth */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Shield className="h-5 w-5" />
+            Two-Factor Authentication (2FA)
+          </CardTitle>
+          <CardDescription>
+            Add an extra layer of security by enabling Google authentication
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="rounded-lg border border-border p-4 space-y-3">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="font-medium">Google Authentication</p>
+                <p className="text-sm text-muted-foreground">
+                  {hasMFA 
+                    ? "Google auth is linked to your account" 
+                    : "Link your Google account for secure 2-step verification"}
+                </p>
+              </div>
+              <div className={`px-3 py-1 rounded-full text-xs font-medium ${
+                hasMFA 
+                  ? "bg-success/10 text-success" 
+                  : "bg-muted text-muted-foreground"
+              }`}>
+                {hasMFA ? "Active" : "Inactive"}
+              </div>
+            </div>
+            
+            <Button 
+              onClick={handleEnableGoogleAuth} 
+              disabled={loading}
+              className="w-full"
+              variant={hasMFA ? "outline" : "default"}
+            >
+              {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              {hasMFA ? "Re-authenticate with Google" : "Enable Google 2FA"}
+            </Button>
+          </div>
+          
+          <div className="text-sm text-muted-foreground space-y-2">
+            <p className="font-medium">How it works:</p>
+            <ol className="list-decimal list-inside space-y-1 ml-2">
+              <li>Click the button above to link your Google account</li>
+              <li>Authorize SonicAPI to verify your identity</li>
+              <li>Next time you login, you'll verify through Google</li>
+            </ol>
+          </div>
         </CardContent>
       </Card>
     </div>
