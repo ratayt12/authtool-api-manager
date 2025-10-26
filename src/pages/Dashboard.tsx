@@ -4,12 +4,14 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
-import { Loader2, LogOut, Plus, Key, Shield, Coins, Smartphone } from "lucide-react";
+import { Loader2, LogOut, Key, Shield, MessageSquare, HelpCircle, User } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { KeysList } from "@/components/KeysList";
 import { CreateKeyDialog } from "@/components/CreateKeyDialog";
-import { SupportChat } from "@/components/SupportChat";
-import { PrivateMessages } from "@/components/PrivateMessages";
 import { DeviceAuthPanel } from "@/components/DeviceAuthPanel";
+import { PrivateMessages } from "@/components/PrivateMessages";
+import { useLanguage } from "@/contexts/LanguageContext";
+import { LanguageSelector } from "@/components/LanguageSelector";
 
 interface Profile {
   id: string;
@@ -26,6 +28,7 @@ const Dashboard = () => {
   const [isAdmin, setIsAdmin] = useState(false);
   const [isOwner, setIsOwner] = useState(false);
   const navigate = useNavigate();
+  const { t } = useLanguage();
 
   useEffect(() => {
     checkUser();
@@ -40,7 +43,6 @@ const Dashboard = () => {
         return;
       }
 
-      // Get user profile
       const { data: profileData, error: profileError } = await supabase
         .from("profiles")
         .select("*")
@@ -48,10 +50,8 @@ const Dashboard = () => {
         .single();
 
       if (profileError) throw profileError;
-
       setProfile(profileData);
 
-      // Check device authorization - get current device fingerprint
       const getDeviceFingerprint = () => {
         const nav = navigator as any;
         const screen = window.screen;
@@ -79,8 +79,6 @@ const Dashboard = () => {
       };
 
       const deviceFingerprint = getDeviceFingerprint();
-
-      // Check if this device is approved
       const { data: deviceSession } = await supabase
         .from('device_sessions')
         .select('*')
@@ -88,7 +86,6 @@ const Dashboard = () => {
         .eq('device_fingerprint', deviceFingerprint)
         .maybeSingle();
 
-      // If device exists but not approved, sign them out
       if (deviceSession && !deviceSession.is_approved) {
         await supabase.auth.signOut();
         toast.error("This device needs admin approval. Please wait for authorization.");
@@ -96,7 +93,6 @@ const Dashboard = () => {
         return;
       }
 
-      // Check if user is admin or owner
       const { data: roleData } = await supabase
         .from("user_roles")
         .select("role")
@@ -162,7 +158,6 @@ const Dashboard = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-accent/10 relative">
-      {/* Ban Overlay */}
       {isUserBanned && (
         <div className="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-xl bg-background/80">
           <Card className="max-w-md mx-4 shadow-2xl border-destructive/50">
@@ -192,87 +187,123 @@ const Dashboard = () => {
       )}
       
       <div className="container mx-auto p-4 md:p-8 space-y-6">
-        {/* Header */}
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-          <div>
-            <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-              Sonic Api
-            </h1>
-            <p className="text-muted-foreground mt-1">
-              Welcome back, {profile?.username}
-            </p>
-          </div>
-          <div className="flex gap-2 flex-wrap">
-            {isOwner && (
-              <Button onClick={() => navigate("/owner")} variant="default" className="touch-manipulation">
-                <Shield className="mr-2 h-4 w-4" />
-                Owner
-              </Button>
-            )}
-            {isAdmin && (
-              <Button onClick={() => navigate("/admin")} variant="outline" className="touch-manipulation">
-                <Shield className="mr-2 h-4 w-4" />
-                Admin
-              </Button>
-            )}
-            <Button onClick={() => navigate("/download-ios")} variant="outline" className="touch-manipulation">
-              <Smartphone className="mr-2 h-4 w-4" />
-              iOS Download
-            </Button>
-            <Button onClick={handleLogout} variant="outline" className="touch-manipulation">
-              <LogOut className="mr-2 h-4 w-4" />
-              Logout
-            </Button>
+        {/* Header with Welcome Message */}
+        <div className="text-center mb-8">
+          <h1 className="text-4xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent mb-2">
+            {t("welcome")}
+          </h1>
+          <p className="text-muted-foreground">
+            {t("welcomeBack")}, {profile?.username}
+          </p>
+          <div className="flex justify-center mt-4">
+            <LanguageSelector />
           </div>
         </div>
 
-        {/* Stats Cards */}
-        <div className="grid gap-4 md:grid-cols-2">
-          <Card className="shadow-lg border-border/50 bg-gradient-to-br from-card to-card/50">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">
-                Available Credits
-              </CardTitle>
-              <Coins className="h-4 w-4 text-primary" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold text-primary">{profile?.credits || 0}</div>
-              <p className="text-xs text-muted-foreground mt-1">
-                Each key creation costs 1 credit
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card className="shadow-lg border-border/50 bg-gradient-to-br from-card to-card/50">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">
-                Quick Actions
-              </CardTitle>
-              <Key className="h-4 w-4 text-accent" />
-            </CardHeader>
-            <CardContent>
-              <CreateKeyDialog onKeyCreated={checkUser} disabled={!!isUserBanned}>
-                <Button 
-                  className="w-full bg-gradient-to-r from-primary to-accent hover:opacity-90"
-                  disabled={!!isUserBanned}
-                >
-                  <Plus className="mr-2 h-4 w-4" />
-                  Create New Key
-                </Button>
-              </CreateKeyDialog>
-            </CardContent>
-          </Card>
+        {/* Top Action Buttons */}
+        <div className="flex justify-center gap-2 flex-wrap mb-6">
+          <CreateKeyDialog onKeyCreated={checkUser} disabled={!!isUserBanned}>
+            <Button className="touch-manipulation">
+              <Key className="mr-2 h-4 w-4" />
+              {t("createKey")}
+            </Button>
+          </CreateKeyDialog>
+          
+          {(isOwner || isAdmin) && (
+            <Button onClick={() => navigate(isOwner ? "/owner" : "/admin")} variant="outline" className="touch-manipulation">
+              <Shield className="mr-2 h-4 w-4" />
+              {isOwner ? "Owner" : "Admin"}
+            </Button>
+          )}
+          
+          <Button 
+            variant="outline" 
+            className="touch-manipulation"
+            onClick={() => window.open('https://t.me/yowxios', '_blank')}
+          >
+            <MessageSquare className="mr-2 h-4 w-4" />
+            {t("twoFASetup")}
+          </Button>
+          
+          <Button 
+            variant="outline" 
+            className="touch-manipulation"
+            onClick={() => window.open('https://t.me/yowxios', '_blank')}
+          >
+            <HelpCircle className="mr-2 h-4 w-4" />
+            {t("support")}
+          </Button>
+          
+          <Button onClick={handleLogout} variant="outline" className="touch-manipulation">
+            <LogOut className="mr-2 h-4 w-4" />
+            {t("logout")}
+          </Button>
         </div>
 
-        <div className="space-y-6">
-          <KeysList />
-          
-          <DeviceAuthPanel />
-          
-          <PrivateMessages />
-          
-          <SupportChat />
-        </div>
+        {/* Credits Display */}
+        <Card className="shadow-lg border-border/50 bg-gradient-to-br from-card to-card/50 max-w-md mx-auto">
+          <CardContent className="p-6 text-center">
+            <p className="text-sm text-muted-foreground mb-2">{t("credits")}</p>
+            <div className="text-4xl font-bold text-primary">{profile?.credits || 0}</div>
+          </CardContent>
+        </Card>
+
+        {/* Main Content Tabs */}
+        <Tabs defaultValue="keys" className="w-full">
+          <TabsList className="grid w-full grid-cols-4 mb-6">
+            <TabsTrigger value="keys" className="touch-manipulation">
+              <Key className="mr-2 h-4 w-4" />
+              {t("keys")}
+            </TabsTrigger>
+            <TabsTrigger value="devices" className="touch-manipulation">
+              <Shield className="mr-2 h-4 w-4" />
+              {t("devices")}
+            </TabsTrigger>
+            <TabsTrigger value="chat" className="touch-manipulation">
+              <MessageSquare className="mr-2 h-4 w-4" />
+              {t("privateChat")}
+            </TabsTrigger>
+            <TabsTrigger value="profile" className="touch-manipulation">
+              <User className="mr-2 h-4 w-4" />
+              {t("profile")}
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="keys" className="space-y-4">
+            <KeysList />
+          </TabsContent>
+
+          <TabsContent value="devices" className="space-y-4">
+            <DeviceAuthPanel />
+          </TabsContent>
+
+          <TabsContent value="chat" className="space-y-4">
+            <PrivateMessages />
+          </TabsContent>
+
+          <TabsContent value="profile" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle>{t("profileInfo")}</CardTitle>
+                <CardDescription>Your account information</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div>
+                  <p className="text-sm text-muted-foreground">{t("username")}</p>
+                  <p className="text-lg font-semibold">{profile?.username}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">{t("status")}</p>
+                  <p className="text-lg font-semibold capitalize">{profile?.approval_status}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">{t("credits")}</p>
+                  <p className="text-lg font-semibold">{profile?.credits}</p>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   );

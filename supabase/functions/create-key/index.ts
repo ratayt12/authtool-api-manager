@@ -74,7 +74,7 @@ serve(async (req) => {
       throw new Error('Invalid duration');
     }
 
-    // Call AuthTool API to create key
+    // Call AuthTool API to create key (without isCleanable)
     console.log('Creating key with AuthTool API...');
     const authtoolResponse = await fetch('https://api.authtool.app/public/v1/key/single-activate', {
       method: 'POST',
@@ -86,8 +86,7 @@ serve(async (req) => {
         quantity: 1,
         packageIds: [3915],
         duration: durationConfig.duration,
-        unit: durationConfig.unit,
-        isCleanable: true
+        unit: durationConfig.unit
       })
     });
 
@@ -102,7 +101,11 @@ serve(async (req) => {
 
     console.log('Key created successfully:', keyCode);
 
-    // Store key in database
+    // Calculate expiry time (1 hour from now for pending keys)
+    const expiryTime = new Date();
+    expiryTime.setHours(expiryTime.getHours() + 1);
+
+    // Store key in database with "pending" status
     const { error: keyInsertError } = await supabase
       .from('keys')
       .insert({
@@ -110,8 +113,9 @@ serve(async (req) => {
         key_code: keyCode,
         duration: duration,
         package_ids: [3915],
-        is_cleanable: true,
-        status: 'active'
+        is_cleanable: false,
+        status: 'pending',
+        expired_at: expiryTime.toISOString()
       });
 
     if (keyInsertError) {

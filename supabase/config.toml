@@ -21,3 +21,6 @@ verify_jwt = true
 [functions.ban-udid]
 verify_jwt = true
 
+[functions.check-key-status]
+verify_jwt = false
+

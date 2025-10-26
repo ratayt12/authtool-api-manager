@@ -10,6 +10,8 @@ import { SupportChat } from "@/components/SupportChat";
 import { UserRequestsPanel } from "@/components/UserRequestsPanel";
 import { AdminDeviceAuthPanel } from "@/components/AdminDeviceAuthPanel";
 import { AdminUserKeysViewer } from "@/components/AdminUserKeysViewer";
+import { UserDeviceInfoPanel } from "@/components/UserDeviceInfoPanel";
+import { AdminUserKeysManager } from "@/components/AdminUserKeysManager";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
@@ -381,6 +383,8 @@ const Admin = () => {
         <AdminDeviceAuthPanel />
 
         <AdminUserKeysViewer />
+        
+        <AdminUserKeysManager />
         
         <SupportChat isAdmin={true} />
 
