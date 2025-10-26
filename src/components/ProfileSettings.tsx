@@ -5,8 +5,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
-import { Loader2, Palette, Lock, User, Globe, Shield } from "lucide-react";
+import { Loader2, Palette, Lock, User, Globe, Shield, Copy, Check } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
+import QRCode from "qrcode";
 import { 
   Select,
   SelectContent,
@@ -14,6 +15,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 interface ProfileSettingsProps {
   profile: {
@@ -40,6 +48,12 @@ export const ProfileSettings = ({ profile, onProfileUpdate }: ProfileSettingsPro
   const [canChangeUsername, setCanChangeUsername] = useState(true);
   const [daysUntilUsernameChange, setDaysUntilUsernameChange] = useState(0);
   const [hasMFA, setHasMFA] = useState(false);
+  const [showMFADialog, setShowMFADialog] = useState(false);
+  const [qrCode, setQrCode] = useState("");
+  const [secret, setSecret] = useState("");
+  const [verifyCode, setVerifyCode] = useState("");
+  const [factorId, setFactorId] = useState("");
+  const [copied, setCopied] = useState(false);
   const { language, setLanguage, t } = useLanguage();
 
   useEffect(() => {
@@ -63,11 +77,99 @@ export const ProfileSettings = ({ profile, onProfileUpdate }: ProfileSettingsPro
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
-        const factors = await supabase.auth.mfa.listFactors();
-        setHasMFA(factors.data && factors.data.totp && factors.data.totp.length > 0);
+        const { data: factors } = await supabase.auth.mfa.listFactors();
+        setHasMFA(factors && factors.totp && factors.totp.length > 0);
       }
     } catch (error) {
       console.error("Error checking MFA status:", error);
+    }
+  };
+
+  const handleEnableAuthenticator = async () => {
+    setLoading(true);
+    try {
+      const { data, error } = await supabase.auth.mfa.enroll({
+        factorType: 'totp',
+        friendlyName: 'SonicAPI Authenticator'
+      });
+
+      if (error) throw error;
+
+      if (data) {
+        setFactorId(data.id);
+        setSecret(data.totp.secret);
+        
+        // Generate QR code
+        const otpauthUrl = data.totp.uri;
+        const qrCodeDataUrl = await QRCode.toDataURL(otpauthUrl);
+        setQrCode(qrCodeDataUrl);
+        setShowMFADialog(true);
+      }
+    } catch (error: any) {
+      toast.error("Failed to setup authenticator");
+      console.error(error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleVerifyCode = async () => {
+    if (!verifyCode || verifyCode.length !== 6) {
+      toast.error("Please enter a valid 6-digit code");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const { data, error } = await supabase.auth.mfa.challengeAndVerify({
+        factorId: factorId,
+        code: verifyCode
+      });
+
+      if (error) throw error;
+
+      toast.success("2FA enabled successfully!");
+      setShowMFADialog(false);
+      setVerifyCode("");
+      setHasMFA(true);
+      checkMFAStatus();
+    } catch (error: any) {
+      toast.error("Invalid code. Please try again.");
+      console.error(error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDisableMFA = async () => {
+    setLoading(true);
+    try {
+      const { data: factors } = await supabase.auth.mfa.listFactors();
+      if (factors && factors.totp && factors.totp.length > 0) {
+        const factor = factors.totp[0];
+        const { error } = await supabase.auth.mfa.unenroll({ factorId: factor.id });
+        
+        if (error) throw error;
+        
+        toast.success("2FA disabled successfully");
+        setHasMFA(false);
+      }
+    } catch (error: any) {
+      toast.error("Failed to disable 2FA");
+      console.error(error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const copyToClipboard = async (text: string) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopied(true);
+      toast.success("Copied to clipboard!");
+      setTimeout(() => setCopied(false), 2000);
+    } catch (error) {
+      toast.error("Failed to copy");
     }
   };
 
@@ -396,7 +498,7 @@ export const ProfileSettings = ({ profile, onProfileUpdate }: ProfileSettingsPro
         </CardContent>
       </Card>
 
-      {/* 2FA Setup with Google Auth */}
+      {/* 2FA Setup with Google Authenticator */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -404,18 +506,18 @@ export const ProfileSettings = ({ profile, onProfileUpdate }: ProfileSettingsPro
             Two-Factor Authentication (2FA)
           </CardTitle>
           <CardDescription>
-            Add an extra layer of security by enabling Google authentication
+            Use Google Authenticator app to generate secure codes
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="rounded-lg border border-border p-4 space-y-3">
             <div className="flex items-center justify-between">
               <div>
-                <p className="font-medium">Google Authentication</p>
+                <p className="font-medium">Google Authenticator</p>
                 <p className="text-sm text-muted-foreground">
                   {hasMFA 
-                    ? "Google auth is linked to your account" 
-                    : "Link your Google account for secure 2-step verification"}
+                    ? "2FA is enabled on your account" 
+                    : "Generate time-based codes for secure login"}
                 </p>
               </div>
               <div className={`px-3 py-1 rounded-full text-xs font-medium ${
@@ -427,23 +529,36 @@ export const ProfileSettings = ({ profile, onProfileUpdate }: ProfileSettingsPro
               </div>
             </div>
             
-            <Button 
-              onClick={handleEnableGoogleAuth} 
-              disabled={loading}
-              className="w-full"
-              variant={hasMFA ? "outline" : "default"}
-            >
-              {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              {hasMFA ? "Re-authenticate with Google" : "Enable Google 2FA"}
-            </Button>
+            {!hasMFA ? (
+              <Button 
+                onClick={handleEnableAuthenticator} 
+                disabled={loading}
+                className="w-full"
+              >
+                {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                Setup Google Authenticator
+              </Button>
+            ) : (
+              <Button 
+                onClick={handleDisableMFA} 
+                disabled={loading}
+                variant="destructive"
+                className="w-full"
+              >
+                {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                Disable 2FA
+              </Button>
+            )}
           </div>
           
           <div className="text-sm text-muted-foreground space-y-2">
             <p className="font-medium">How it works:</p>
             <ol className="list-decimal list-inside space-y-1 ml-2">
-              <li>Click the button above to link your Google account</li>
-              <li>Authorize SonicAPI to verify your identity</li>
-              <li>Next time you login, you'll verify through Google</li>
+              <li>Install Google Authenticator on your phone</li>
+              <li>Click "Setup Google Authenticator" to get a QR code</li>
+              <li>Scan the QR code with the app</li>
+              <li>Enter the 6-digit code to verify</li>
+              <li>Use codes from the app when logging in</li>
             </ol>
           </div>
         </CardContent>
