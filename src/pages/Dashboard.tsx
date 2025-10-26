@@ -11,6 +11,7 @@ import { CreateKeyDialog } from "@/components/CreateKeyDialog";
 import { DeviceAuthPanel } from "@/components/DeviceAuthPanel";
 import { PrivateMessages } from "@/components/PrivateMessages";
 import { ProfileSettings } from "@/components/ProfileSettings";
+import { ParticleEffect } from "@/components/ParticleEffect";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { LanguageSelector } from "@/components/LanguageSelector";
 
@@ -26,6 +27,7 @@ interface Profile {
     primary?: string;
     accent?: string;
   };
+  background_color?: string;
 }
 
 const Dashboard = () => {
@@ -66,6 +68,11 @@ const Dashboard = () => {
         if (themeColors.accent) {
           document.documentElement.style.setProperty('--accent', themeColors.accent);
         }
+      }
+      
+      // Apply saved background color
+      if (profileData.background_color) {
+        document.documentElement.style.setProperty('--background', profileData.background_color);
       }
       
       setProfile(profileData as any);
@@ -176,6 +183,7 @@ const Dashboard = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-accent/10 relative">
+      <ParticleEffect />
       {isUserBanned && (
         <div className="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-xl bg-background/80">
           <Card className="max-w-md mx-4 shadow-2xl border-destructive/50">

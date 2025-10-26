@@ -16,6 +16,7 @@ interface ProfileSettingsProps {
       primary?: string;
       accent?: string;
     };
+    background_color?: string;
   };
   onProfileUpdate: () => void;
 }
@@ -27,6 +28,7 @@ export const ProfileSettings = ({ profile, onProfileUpdate }: ProfileSettingsPro
   const [confirmPassword, setConfirmPassword] = useState("");
   const [primaryColor, setPrimaryColor] = useState(profile.theme_colors?.primary || "263 70% 50%");
   const [accentColor, setAccentColor] = useState(profile.theme_colors?.accent || "263 70% 60%");
+  const [backgroundColor, setBackgroundColor] = useState(profile.background_color || "240 10% 3.9%");
   const [canChangeUsername, setCanChangeUsername] = useState(true);
   const [daysUntilUsernameChange, setDaysUntilUsernameChange] = useState(0);
 
@@ -114,7 +116,8 @@ export const ProfileSettings = ({ profile, onProfileUpdate }: ProfileSettingsPro
           theme_colors: {
             primary: primaryColor,
             accent: accentColor
-          }
+          },
+          background_color: backgroundColor
         })
         .eq("id", profile.id);
 
@@ -123,6 +126,7 @@ export const ProfileSettings = ({ profile, onProfileUpdate }: ProfileSettingsPro
       // Apply colors to CSS variables
       document.documentElement.style.setProperty('--primary', primaryColor);
       document.documentElement.style.setProperty('--accent', accentColor);
+      document.documentElement.style.setProperty('--background', backgroundColor);
 
       toast.success("Theme colors updated successfully");
       onProfileUpdate();
@@ -198,7 +202,7 @@ export const ProfileSettings = ({ profile, onProfileUpdate }: ProfileSettingsPro
           <CardDescription>Customize your UI and website colors</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="space-y-2">
               <Label htmlFor="primary-color">Primary Color</Label>
               <Input
@@ -220,6 +224,17 @@ export const ProfileSettings = ({ profile, onProfileUpdate }: ProfileSettingsPro
                 className="h-12 cursor-pointer"
               />
               <p className="text-xs text-muted-foreground">HSL: {accentColor}</p>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="background-color">Background Color</Label>
+              <Input
+                id="background-color"
+                type="color"
+                value={hslToHex(backgroundColor)}
+                onChange={(e) => setBackgroundColor(hexToHsl(e.target.value))}
+                className="h-12 cursor-pointer"
+              />
+              <p className="text-xs text-muted-foreground">HSL: {backgroundColor}</p>
             </div>
           </div>
           <Button onClick={handleColorChange} disabled={loading} className="w-full">
