@@ -221,9 +221,6 @@ const Dashboard = () => {
           <p className="text-muted-foreground">
             {t("welcomeBack")}, {profile?.username}
           </p>
-          <div className="flex justify-center mt-4">
-            <LanguageSelector />
-          </div>
         </div>
 
         {/* Top Action Buttons */}
@@ -241,15 +238,6 @@ const Dashboard = () => {
               {isOwner ? "Owner" : "Admin"}
             </Button>
           )}
-          
-          <Button 
-            variant="outline" 
-            className="touch-manipulation"
-            onClick={() => window.open('https://t.me/yowxios', '_blank')}
-          >
-            <MessageSquare className="mr-2 h-4 w-4" />
-            {t("twoFASetup")}
-          </Button>
           
           <Button 
             variant="outline" 

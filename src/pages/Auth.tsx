@@ -7,6 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { Loader2, KeyRound, Download } from "lucide-react";
+import { MFAVerification } from "@/components/MFAVerification";
 
 const Auth = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -14,6 +15,7 @@ const Auth = () => {
   const [password, setPassword] = useState("");
   const [username, setUsername] = useState("");
   const [loading, setLoading] = useState(false);
+  const [showMFA, setShowMFA] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -33,12 +35,21 @@ const Auth = () => {
 
     try {
       if (isLogin) {
-        const { error } = await supabase.auth.signInWithPassword({
+        const { data, error } = await supabase.auth.signInWithPassword({
           email,
           password,
         });
 
         if (error) throw error;
+
+        // Check if user has MFA enabled
+        const { data: factors } = await supabase.auth.mfa.listFactors();
+        if (factors && factors.totp && factors.totp.length > 0) {
+          // User has 2FA enabled, show verification screen
+          setShowMFA(true);
+          setLoading(false);
+          return;
+        }
 
         toast.success("Logged in successfully!");
         navigate("/dashboard");
@@ -65,6 +76,22 @@ const Auth = () => {
       setLoading(false);
     }
   };
+
+  const handleMFASuccess = () => {
+    setShowMFA(false);
+    navigate("/dashboard");
+  };
+
+  const handleMFACancel = async () => {
+    await supabase.auth.signOut();
+    setShowMFA(false);
+    setEmail("");
+    setPassword("");
+  };
+
+  if (showMFA) {
+    return <MFAVerification onSuccess={handleMFASuccess} onCancel={handleMFACancel} />;
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-background to-accent/10 p-4">

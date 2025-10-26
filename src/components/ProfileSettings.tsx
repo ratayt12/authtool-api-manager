@@ -7,7 +7,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { toast } from "sonner";
 import { Loader2, Palette, Lock, User, Globe, Shield, Copy, Check } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
-import QRCode from "qrcode";
 import { 
   Select,
   SelectContent,
@@ -49,7 +48,6 @@ export const ProfileSettings = ({ profile, onProfileUpdate }: ProfileSettingsPro
   const [daysUntilUsernameChange, setDaysUntilUsernameChange] = useState(0);
   const [hasMFA, setHasMFA] = useState(false);
   const [showMFADialog, setShowMFADialog] = useState(false);
-  const [qrCode, setQrCode] = useState("");
   const [secret, setSecret] = useState("");
   const [verifyCode, setVerifyCode] = useState("");
   const [factorId, setFactorId] = useState("");
@@ -88,9 +86,19 @@ export const ProfileSettings = ({ profile, onProfileUpdate }: ProfileSettingsPro
   const handleEnableAuthenticator = async () => {
     setLoading(true);
     try {
+      // First, check if user already has factors and remove them
+      const { data: existingFactors } = await supabase.auth.mfa.listFactors();
+      if (existingFactors && existingFactors.totp && existingFactors.totp.length > 0) {
+        // Remove existing factors
+        for (const factor of existingFactors.totp) {
+          await supabase.auth.mfa.unenroll({ factorId: factor.id });
+        }
+      }
+
+      // Now enroll new factor
       const { data, error } = await supabase.auth.mfa.enroll({
         factorType: 'totp',
-        friendlyName: 'SonicAPI Authenticator'
+        friendlyName: `SonicAPI-${Date.now()}`
       });
 
       if (error) throw error;
@@ -98,15 +106,10 @@ export const ProfileSettings = ({ profile, onProfileUpdate }: ProfileSettingsPro
       if (data) {
         setFactorId(data.id);
         setSecret(data.totp.secret);
-        
-        // Generate QR code
-        const otpauthUrl = data.totp.uri;
-        const qrCodeDataUrl = await QRCode.toDataURL(otpauthUrl);
-        setQrCode(qrCodeDataUrl);
         setShowMFADialog(true);
       }
     } catch (error: any) {
-      toast.error("Failed to setup authenticator");
+      toast.error(error.message || "Failed to setup authenticator");
       console.error(error);
     } finally {
       setLoading(false);
@@ -121,20 +124,31 @@ export const ProfileSettings = ({ profile, onProfileUpdate }: ProfileSettingsPro
 
     setLoading(true);
     try {
-      const { data, error } = await supabase.auth.mfa.challengeAndVerify({
+      // First create a challenge
+      const { data: challengeData, error: challengeError } = await supabase.auth.mfa.challenge({
+        factorId: factorId
+      });
+
+      if (challengeError) throw challengeError;
+
+      // Then verify the code
+      const { error: verifyError } = await supabase.auth.mfa.verify({
         factorId: factorId,
+        challengeId: challengeData.id,
         code: verifyCode
       });
 
-      if (error) throw error;
+      if (verifyError) throw verifyError;
 
       toast.success("2FA enabled successfully!");
       setShowMFADialog(false);
       setVerifyCode("");
+      setSecret("");
+      setFactorId("");
       setHasMFA(true);
       checkMFAStatus();
     } catch (error: any) {
-      toast.error("Invalid code. Please try again.");
+      toast.error(error.message || "Invalid code. Please try again.");
       console.error(error);
     } finally {
       setLoading(false);
@@ -343,6 +357,68 @@ export const ProfileSettings = ({ profile, onProfileUpdate }: ProfileSettingsPro
 
   return (
     <div className="space-y-6">
+      {/* MFA Setup Dialog - Manual Code Entry Only */}
+      <Dialog open={showMFADialog} onOpenChange={setShowMFADialog}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Setup Google Authenticator</DialogTitle>
+            <DialogDescription>
+              Enter this code in Google Authenticator app
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4">
+            <div className="w-full space-y-2">
+              <Label className="font-semibold">Secret Code:</Label>
+              <div className="flex gap-2">
+                <Input 
+                  value={secret} 
+                  readOnly 
+                  className="font-mono text-sm bg-muted"
+                />
+                <Button 
+                  size="icon" 
+                  variant="outline"
+                  onClick={() => copyToClipboard(secret)}
+                >
+                  {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                </Button>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                1. Open Google Authenticator app<br/>
+                2. Tap "+" to add account<br/>
+                3. Select "Enter a setup key"<br/>
+                4. Enter account name: SonicAPI<br/>
+                5. Paste the secret code above<br/>
+                6. Tap "Add"
+              </p>
+            </div>
+
+            <div className="w-full space-y-2">
+              <Label htmlFor="verify-code">Enter 6-digit code from app:</Label>
+              <Input
+                id="verify-code"
+                type="text"
+                maxLength={6}
+                value={verifyCode}
+                onChange={(e) => setVerifyCode(e.target.value.replace(/\D/g, ''))}
+                placeholder="000000"
+                className="text-center text-2xl tracking-widest font-mono"
+              />
+            </div>
+
+            <Button 
+              onClick={handleVerifyCode} 
+              disabled={loading || verifyCode.length !== 6}
+              className="w-full"
+            >
+              {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              Verify & Enable 2FA
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
       {/* Theme Colors */}
       <Card>
         <CardHeader>
@@ -555,8 +631,8 @@ export const ProfileSettings = ({ profile, onProfileUpdate }: ProfileSettingsPro
             <p className="font-medium">How it works:</p>
             <ol className="list-decimal list-inside space-y-1 ml-2">
               <li>Install Google Authenticator on your phone</li>
-              <li>Click "Setup Google Authenticator" to get a QR code</li>
-              <li>Scan the QR code with the app</li>
+              <li>Click "Setup Google Authenticator" button above</li>
+              <li>Copy the secret code and add it to your app</li>
               <li>Enter the 6-digit code to verify</li>
               <li>Use codes from the app when logging in</li>
             </ol>
