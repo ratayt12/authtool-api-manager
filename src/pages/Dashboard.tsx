@@ -10,6 +10,7 @@ import { KeysList } from "@/components/KeysList";
 import { CreateKeyDialog } from "@/components/CreateKeyDialog";
 import { DeviceAuthPanel } from "@/components/DeviceAuthPanel";
 import { PrivateMessages } from "@/components/PrivateMessages";
+import { ProfileSettings } from "@/components/ProfileSettings";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { LanguageSelector } from "@/components/LanguageSelector";
 
@@ -20,6 +21,11 @@ interface Profile {
   credits: number;
   ban_until: string | null;
   ban_message: string | null;
+  last_username_change?: string;
+  theme_colors?: {
+    primary?: string;
+    accent?: string;
+  };
 }
 
 const Dashboard = () => {
@@ -50,7 +56,19 @@ const Dashboard = () => {
         .single();
 
       if (profileError) throw profileError;
-      setProfile(profileData);
+      
+      // Apply saved theme colors if they exist
+      const themeColors = profileData.theme_colors as any;
+      if (themeColors) {
+        if (themeColors.primary) {
+          document.documentElement.style.setProperty('--primary', themeColors.primary);
+        }
+        if (themeColors.accent) {
+          document.documentElement.style.setProperty('--accent', themeColors.accent);
+        }
+      }
+      
+      setProfile(profileData as any);
 
       const getDeviceFingerprint = () => {
         const nav = navigator as any;
@@ -282,26 +300,7 @@ const Dashboard = () => {
           </TabsContent>
 
           <TabsContent value="profile" className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle>{t("profileInfo")}</CardTitle>
-                <CardDescription>Your account information</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div>
-                  <p className="text-sm text-muted-foreground">{t("username")}</p>
-                  <p className="text-lg font-semibold">{profile?.username}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">{t("status")}</p>
-                  <p className="text-lg font-semibold capitalize">{profile?.approval_status}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">{t("credits")}</p>
-                  <p className="text-lg font-semibold">{profile?.credits}</p>
-                </div>
-              </CardContent>
-            </Card>
+            {profile && <ProfileSettings profile={profile} onProfileUpdate={checkUser} />}
           </TabsContent>
         </Tabs>
       </div>

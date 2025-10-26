@@ -170,6 +170,8 @@ export type Database = {
           created_at: string
           credits: number
           id: string
+          last_username_change: string | null
+          theme_colors: Json | null
           updated_at: string
           username: string
         }
@@ -180,6 +182,8 @@ export type Database = {
           created_at?: string
           credits?: number
           id: string
+          last_username_change?: string | null
+          theme_colors?: Json | null
           updated_at?: string
           username: string
         }
@@ -190,6 +194,8 @@ export type Database = {
           created_at?: string
           credits?: number
           id?: string
+          last_username_change?: string | null
+          theme_colors?: Json | null
           updated_at?: string
           username?: string
         }
