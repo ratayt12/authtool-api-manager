@@ -53,25 +53,25 @@ serve(async (req) => {
       );
     }
 
-    if (profile.credits < 1) {
-      return new Response(
-        JSON.stringify({ error: 'Insufficient credits' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
     const { duration } = await req.json();
 
-    // Map duration to days and unit
-    const durationMap: Record<string, { duration: number; unit: string }> = {
-      '1day': { duration: 1, unit: 'day' },
-      '1week': { duration: 7, unit: 'day' },
-      '25days': { duration: 25, unit: 'day' }
+    // Map duration to days, unit, and credit cost
+    const durationMap: Record<string, { duration: number; unit: string; credits: number }> = {
+      '1day': { duration: 1, unit: 'day', credits: 1 },
+      '1week': { duration: 7, unit: 'day', credits: 3 },
+      '25days': { duration: 25, unit: 'day', credits: 5 }
     };
 
     const durationConfig = durationMap[duration];
     if (!durationConfig) {
       throw new Error('Invalid duration');
+    }
+
+    if (profile.credits < durationConfig.credits) {
+      return new Response(
+        JSON.stringify({ error: `Insufficient credits. You need ${durationConfig.credits} credits for this duration.` }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
 
     // Call AuthTool API to create key (without isCleanable)
@@ -123,19 +123,20 @@ serve(async (req) => {
       throw new Error('Failed to store key in database');
     }
 
-    // Deduct credit
+    // Deduct credits based on duration
+    const newCredits = profile.credits - durationConfig.credits;
     const { error: creditError } = await supabase
       .from('profiles')
-      .update({ credits: profile.credits - 1 })
+      .update({ credits: newCredits })
       .eq('id', user.id);
 
     if (creditError) {
-      console.error('Failed to deduct credit:', creditError);
-      throw new Error('Failed to deduct credit');
+      console.error('Failed to deduct credits:', creditError);
+      throw new Error('Failed to deduct credits');
     }
 
     return new Response(
-      JSON.stringify({ success: true, keyCode, creditsRemaining: profile.credits - 1 }),
+      JSON.stringify({ success: true, keyCode, creditsRemaining: newCredits }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
 
