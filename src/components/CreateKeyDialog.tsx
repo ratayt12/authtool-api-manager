@@ -51,7 +51,7 @@ export const CreateKeyDialog = ({ children, onKeyCreated, disabled = false }: Cr
         <DialogHeader>
           <DialogTitle>Create New Key</DialogTitle>
           <DialogDescription>
-            Select the duration for your new API key. This will cost 1 credit.
+            Select the duration for your new API key. Credits required vary by duration.
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-4 py-4">
@@ -62,9 +62,9 @@ export const CreateKeyDialog = ({ children, onKeyCreated, disabled = false }: Cr
                 <SelectValue placeholder="Select duration" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="1day">1 Day</SelectItem>
-                <SelectItem value="1week">1 Week</SelectItem>
-                <SelectItem value="25days">1 Month</SelectItem>
+                <SelectItem value="1day">1 Day (1 Credit)</SelectItem>
+                <SelectItem value="1week">1 Week (3 Credits)</SelectItem>
+                <SelectItem value="25days">1 Month (5 Credits)</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -83,7 +83,7 @@ export const CreateKeyDialog = ({ children, onKeyCreated, disabled = false }: Cr
             className="bg-gradient-to-r from-primary to-accent hover:opacity-90"
           >
             {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            Create Key (1 Credit)
+            Create Key
           </Button>
         </DialogFooter>
       </DialogContent>

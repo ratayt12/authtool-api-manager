@@ -46,6 +46,9 @@ All colors MUST be HSL.
     
     --shadow-glow: 0 0 40px hsl(263 70% 50% / 0.2);
     --shadow-card: 0 8px 32px hsl(240 10% 3.9% / 0.4);
+    
+    --electric-blue: 200 100% 50%;
+    --shadow-electric: 0 0 20px hsl(200 100% 50% / 0.6), 0 0 40px hsl(200 100% 50% / 0.4);
   }
 }
 
