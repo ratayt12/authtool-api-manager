@@ -27,6 +27,15 @@ const Auth = () => {
       }
     };
     checkSession();
+
+    // Check URL params for errors
+    const params = new URLSearchParams(window.location.search);
+    const error = params.get('error');
+    if (error === 'device_not_approved') {
+      toast.error("This device needs admin approval. Please wait for authorization.");
+    } else if (error === 'device_requires_approval') {
+      toast.error("New device detected. Please wait for admin approval.");
+    }
   }, [navigate]);
 
   const handleAuth = async (e: React.FormEvent) => {

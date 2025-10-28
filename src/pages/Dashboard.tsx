@@ -13,8 +13,10 @@ import { PrivateMessages } from "@/components/PrivateMessages";
 import { ProfileSettings } from "@/components/ProfileSettings";
 import { ParticleEffect } from "@/components/ParticleEffect";
 import { ElectricBackground } from "@/components/ElectricBackground";
+import { WeeklyRewardWheel } from "@/components/WeeklyRewardWheel";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { LanguageSelector } from "@/components/LanguageSelector";
+import { DeviceTracker } from "@/components/DeviceTracker";
 
 interface Profile {
   id: string;
@@ -194,6 +196,8 @@ const Dashboard = () => {
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-accent/10 relative">
       <ParticleEffect />
       <ElectricBackground color={profile?.lightning_color} segmentColor={profile?.segment_color} />
+      <DeviceTracker />
+      <WeeklyRewardWheel onRewardClaimed={checkUser} />
       {isUserBanned && (
         <div className="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-xl bg-background/80">
           <Card className="max-w-md mx-4 shadow-2xl border-destructive/50">
@@ -285,7 +289,7 @@ const Dashboard = () => {
             </TabsTrigger>
             <TabsTrigger value="chat" className="touch-manipulation">
               <MessageSquare className="mr-2 h-4 w-4" />
-              {t("privateChat")}
+              SonicAi
             </TabsTrigger>
             <TabsTrigger value="profile" className="touch-manipulation">
               <User className="mr-2 h-4 w-4" />

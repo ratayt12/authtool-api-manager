@@ -41,6 +41,33 @@ const getIpAddress = async (): Promise<string> => {
   }
 };
 
+// Function to check device authorization and auto-login
+export const checkDeviceAuth = async (): Promise<boolean> => {
+  try {
+    const deviceFingerprint = getDeviceFingerprint();
+    const ipAddress = await getIpAddress();
+
+    // Check if device is already approved
+    const { data: approvedSession } = await supabase
+      .from('device_sessions')
+      .select('user_id, is_approved')
+      .eq('device_fingerprint', deviceFingerprint)
+      .eq('ip_address', ipAddress)
+      .eq('is_approved', true)
+      .maybeSingle();
+
+    if (approvedSession) {
+      // Device is approved, we can auto-login
+      return true;
+    }
+
+    return false;
+  } catch (error) {
+    console.error('Error checking device auth:', error);
+    return false;
+  }
+};
+
 export const DeviceTracker = () => {
   useEffect(() => {
     const trackDevice = async () => {
@@ -66,6 +93,14 @@ export const DeviceTracker = () => {
           .maybeSingle();
 
         if (existingSession) {
+          // Check if device is approved
+          if (!existingSession.is_approved) {
+            // Device not approved, sign out
+            await supabase.auth.signOut();
+            window.location.href = '/auth?error=device_not_approved';
+            return;
+          }
+
           // Update last active time
           await supabase
             .from('device_sessions')
@@ -93,6 +128,13 @@ export const DeviceTracker = () => {
               ip_address: ipAddress,
               is_approved: isFirstDevice, // Auto-approve first device
             });
+
+          // If not first device and not approved, sign out
+          if (!isFirstDevice) {
+            await supabase.auth.signOut();
+            window.location.href = '/auth?error=device_requires_approval';
+            return;
+          }
         }
       } catch (error) {
         console.error('Device tracking error:', error);

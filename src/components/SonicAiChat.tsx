@@ -173,6 +173,9 @@ export const SonicAiChat = () => {
     await sendBotMessage(t.waitingAdmin);
     setStep("complete");
 
+    // Reload messages to show the confirmation immediately
+    setTimeout(() => loadMessages(), 500);
+
     toast({
       title: "Success",
       description: "Your request has been sent to administrators",

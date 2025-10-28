@@ -362,6 +362,30 @@ export type Database = {
         }
         Relationships: []
       }
+      weekly_spins: {
+        Row: {
+          created_at: string
+          credits_won: number
+          id: string
+          spin_date: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          credits_won: number
+          id?: string
+          spin_date?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          credits_won?: number
+          id?: string
+          spin_date?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

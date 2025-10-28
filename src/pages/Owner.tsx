@@ -246,6 +246,23 @@ const Owner = () => {
     }
   };
 
+  const handleClearAllDevices = async () => {
+    if (!confirm("Clear all device sessions? All users will need to re-authenticate on their devices.")) return;
+
+    try {
+      const { error } = await supabase
+        .from('device_sessions')
+        .delete()
+        .neq('id', '00000000-0000-0000-0000-000000000000'); // Delete all
+
+      if (error) throw error;
+
+      toast.success("All device sessions cleared successfully");
+    } catch (error: any) {
+      toast.error(error.message || "Failed to clear devices");
+    }
+  };
+
   const isUserBanned = (user: User) => {
     if (!user.ban_until) return false;
     return new Date(user.ban_until) > new Date();
@@ -262,18 +279,28 @@ const Owner = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-accent/10">
       <div className="container mx-auto p-4 md:p-8 space-y-6">
-        <div className="flex items-center gap-4">
-          <Button onClick={() => navigate("/dashboard")} variant="outline">
-            <ArrowLeft className="h-4 w-4" />
-          </Button>
-          <div>
-            <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-              Owner Panel
-            </h1>
-            <p className="text-muted-foreground mt-1">
-              Full control over users, approvals, admins, and credits
-            </p>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <Button onClick={() => navigate("/dashboard")} variant="outline">
+              <ArrowLeft className="h-4 w-4" />
+            </Button>
+            <div>
+              <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+                Owner Panel
+              </h1>
+              <p className="text-muted-foreground mt-1">
+                Full control over users, approvals, admins, and credits
+              </p>
+            </div>
           </div>
+          <Button 
+            onClick={handleClearAllDevices}
+            variant="destructive"
+            className="gap-2"
+          >
+            <Shield className="h-4 w-4" />
+            Clear All Devices
+          </Button>
         </div>
 
         <Card className="shadow-xl border-border/50">
