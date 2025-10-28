@@ -247,7 +247,7 @@ export const KeysList = () => {
                         <KeyPrivateMessages keyCode={key.key_code} />
                       </div>
                       <div className="text-sm text-muted-foreground space-y-1">
-                        <p>{t("duration")}: <span className="text-foreground font-medium">{key.duration}</span></p>
+                        <p>{t("duration")}: <span className="text-foreground font-medium">{key.duration === "25days" ? "30days" : key.duration}</span></p>
                         <p>{t("created")}: <span className="text-foreground">{new Date(key.created_at).toLocaleDateString()}</span></p>
                         <p>{t("activations")}: <span className="text-foreground">{key.activate_count}</span></p>
                       </div>

@@ -26,6 +26,7 @@ interface ProfileSettingsProps {
   profile: {
     id: string;
     username: string;
+    credits?: number;
     last_username_change?: string;
     theme_colors?: {
       primary?: string;
@@ -33,6 +34,7 @@ interface ProfileSettingsProps {
     };
     background_color?: string;
     lightning_color?: string;
+    segment_color?: string;
   };
   onProfileUpdate: () => void;
 }
@@ -46,6 +48,7 @@ export const ProfileSettings = ({ profile, onProfileUpdate }: ProfileSettingsPro
   const [accentColor, setAccentColor] = useState(profile.theme_colors?.accent || "263 70% 60%");
   const [backgroundColor, setBackgroundColor] = useState(profile.background_color || "240 10% 3.9%");
   const [lightningColor, setLightningColor] = useState(profile.lightning_color || "200 100% 50%");
+  const [segmentColor, setSegmentColor] = useState(profile.segment_color || "200 100% 50%");
   const [canChangeUsername, setCanChangeUsername] = useState(true);
   const [daysUntilUsernameChange, setDaysUntilUsernameChange] = useState(0);
   const [hasMFA, setHasMFA] = useState(false);
@@ -261,7 +264,8 @@ export const ProfileSettings = ({ profile, onProfileUpdate }: ProfileSettingsPro
             accent: accentColor
           },
           background_color: backgroundColor,
-          lightning_color: lightningColor
+          lightning_color: lightningColor,
+          segment_color: segmentColor
         })
         .eq("id", profile.id);
 
@@ -429,7 +433,17 @@ export const ProfileSettings = ({ profile, onProfileUpdate }: ProfileSettingsPro
             <Palette className="h-5 w-5" />
             {t("themeCustomization")}
           </CardTitle>
-          <CardDescription>{t("customizeColorsDescription")}</CardDescription>
+          <CardDescription>
+            {t("customizeColorsDescription")} 
+            <span className="ml-2 px-2 py-0.5 rounded font-bold text-sm" style={{ 
+              color: 'hsl(200 100% 50%)', 
+              textShadow: '0 0 10px hsl(200 100% 50%), 0 0 20px hsl(200 100% 50%)',
+              border: '2px solid hsl(200 100% 50%)',
+              boxShadow: '0 0 15px hsl(200 100% 50% / 0.5), inset 0 0 15px hsl(200 100% 50% / 0.2)'
+            }}>
+              Credits: {profile.credits || 0}
+            </span>
+          </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -476,6 +490,17 @@ export const ProfileSettings = ({ profile, onProfileUpdate }: ProfileSettingsPro
                 className="h-12 cursor-pointer"
               />
               <p className="text-xs text-muted-foreground">HSL: {lightningColor}</p>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="segment-color">{t("segmentColor")}</Label>
+              <Input
+                id="segment-color"
+                type="color"
+                value={hslToHex(segmentColor)}
+                onChange={(e) => setSegmentColor(hexToHsl(e.target.value))}
+                className="h-12 cursor-pointer"
+              />
+              <p className="text-xs text-muted-foreground">HSL: {segmentColor}</p>
             </div>
           </div>
           <Button onClick={handleColorChange} disabled={loading} className="w-full">

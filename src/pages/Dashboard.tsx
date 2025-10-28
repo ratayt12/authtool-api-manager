@@ -30,6 +30,7 @@ interface Profile {
   };
   background_color?: string;
   lightning_color?: string;
+  segment_color?: string;
 }
 
 const Dashboard = () => {
@@ -192,7 +193,7 @@ const Dashboard = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-accent/10 relative">
       <ParticleEffect />
-      <ElectricBackground color={profile?.lightning_color} />
+      <ElectricBackground color={profile?.lightning_color} segmentColor={profile?.segment_color} />
       {isUserBanned && (
         <div className="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-xl bg-background/80">
           <Card className="max-w-md mx-4 shadow-2xl border-destructive/50">

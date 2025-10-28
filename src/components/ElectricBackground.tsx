@@ -2,9 +2,10 @@ import { useEffect, useRef } from "react";
 
 interface ElectricBackgroundProps {
   color?: string; // HSL format: "200 100% 50%"
+  segmentColor?: string; // HSL format: "200 100% 50%"
 }
 
-export const ElectricBackground = ({ color = "200 100% 50%" }: ElectricBackgroundProps) => {
+export const ElectricBackground = ({ color = "200 100% 50%", segmentColor = "200 100% 50%" }: ElectricBackgroundProps) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
@@ -86,8 +87,78 @@ export const ElectricBackground = ({ color = "200 100% 50%" }: ElectricBackgroun
       }
     }
 
+    // Electric segments class
+    class ElectricSegment {
+      x: number;
+      y: number;
+      length: number;
+      angle: number;
+      speed: number;
+      alpha: number;
+      pulseSpeed: number;
+      pulsePhase: number;
+
+      constructor() {
+        this.x = Math.random() * canvas.width;
+        this.y = Math.random() * canvas.height;
+        this.length = Math.random() * 100 + 50;
+        this.angle = Math.random() * Math.PI * 2;
+        this.speed = Math.random() * 0.5 + 0.2;
+        this.alpha = Math.random() * 0.5 + 0.3;
+        this.pulseSpeed = Math.random() * 0.05 + 0.02;
+        this.pulsePhase = Math.random() * Math.PI * 2;
+      }
+
+      draw(timestamp: number) {
+        if (!ctx) return;
+
+        const pulse = Math.sin(timestamp * this.pulseSpeed + this.pulsePhase) * 0.3 + 0.7;
+        const currentAlpha = this.alpha * pulse;
+
+        ctx.save();
+        ctx.translate(this.x, this.y);
+        ctx.rotate(this.angle);
+
+        // Main segment
+        ctx.strokeStyle = `hsla(${segmentColor} / ${currentAlpha})`;
+        ctx.lineWidth = 3;
+        ctx.shadowColor = `hsl(${segmentColor})`;
+        ctx.shadowBlur = 20;
+
+        ctx.beginPath();
+        ctx.moveTo(0, 0);
+        ctx.lineTo(this.length, 0);
+        ctx.stroke();
+
+        // Glow effect
+        ctx.strokeStyle = `hsla(${segmentColor} / ${currentAlpha * 0.5})`;
+        ctx.lineWidth = 6;
+        ctx.shadowBlur = 30;
+        ctx.stroke();
+
+        ctx.restore();
+      }
+
+      update() {
+        this.x += Math.cos(this.angle) * this.speed;
+        this.y += Math.sin(this.angle) * this.speed;
+
+        // Wrap around screen
+        if (this.x < -this.length) this.x = canvas.width + this.length;
+        if (this.x > canvas.width + this.length) this.x = -this.length;
+        if (this.y < -this.length) this.y = canvas.height + this.length;
+        if (this.y > canvas.height + this.length) this.y = -this.length;
+      }
+    }
+
     const lightnings: Lightning[] = [];
+    const segments: ElectricSegment[] = [];
     let lastSpawn = 0;
+
+    // Initialize segments
+    for (let i = 0; i < 15; i++) {
+      segments.push(new ElectricSegment());
+    }
 
     // Animation loop
     const animate = (timestamp: number) => {
@@ -101,6 +172,12 @@ export const ElectricBackground = ({ color = "200 100% 50%" }: ElectricBackgroun
         lightnings.push(new Lightning());
         lastSpawn = timestamp;
       }
+
+      // Update and draw segments
+      segments.forEach(segment => {
+        segment.draw(timestamp);
+        segment.update();
+      });
 
       // Update and draw lightnings
       for (let i = lightnings.length - 1; i >= 0; i--) {
@@ -119,7 +196,7 @@ export const ElectricBackground = ({ color = "200 100% 50%" }: ElectricBackgroun
     return () => {
       window.removeEventListener("resize", setCanvasSize);
     };
-  }, [color]);
+  }, [color, segmentColor]);
 
   return (
     <canvas

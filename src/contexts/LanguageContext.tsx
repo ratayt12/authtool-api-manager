@@ -273,6 +273,12 @@ const translations: Translations = {
     pt: "Cor do Relâmpago",
     vi: "Màu tia sét"
   },
+  segmentColor: {
+    en: "Segment Color",
+    es: "Color de Segmentos",
+    pt: "Cor dos Segmentos",
+    vi: "Màu phân đoạn"
+  },
   saveColors: {
     en: "Save Colors",
     es: "Guardar Colores",

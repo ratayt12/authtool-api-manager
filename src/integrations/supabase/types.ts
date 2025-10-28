@@ -173,6 +173,7 @@ export type Database = {
           id: string
           last_username_change: string | null
           lightning_color: string | null
+          segment_color: string | null
           theme_colors: Json | null
           updated_at: string
           username: string
@@ -187,6 +188,7 @@ export type Database = {
           id: string
           last_username_change?: string | null
           lightning_color?: string | null
+          segment_color?: string | null
           theme_colors?: Json | null
           updated_at?: string
           username: string
@@ -201,6 +203,7 @@ export type Database = {
           id?: string
           last_username_change?: string | null
           lightning_color?: string | null
+          segment_color?: string | null
           theme_colors?: Json | null
           updated_at?: string
           username?: string
@@ -364,6 +367,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      delete_old_private_messages: { Args: never; Returns: undefined }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
