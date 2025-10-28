@@ -158,32 +158,36 @@ export const WeeklyRewardWheel = ({ onRewardClaimed }: WeeklyRewardWheelProps) =
         </h3>
       </div>
 
-      <div className="relative w-48 h-48 mx-auto mb-4">
+      <div className="relative w-56 h-56 mx-auto mb-4">
         {/* Wheel */}
         <motion.div
-          className="absolute inset-0 rounded-full overflow-hidden shadow-2xl border-4 border-primary/50"
+          className="absolute inset-0 rounded-full shadow-2xl border-4 border-primary/50"
           animate={{ rotate: rotation }}
           transition={{ duration: 4, ease: "easeOut" }}
         >
           {REWARD_OPTIONS.map((credits, index) => {
             const angle = (360 / REWARD_OPTIONS.length) * index;
+            const segmentAngle = 360 / REWARD_OPTIONS.length;
             return (
               <div
                 key={index}
-                className="absolute w-full h-full flex items-center justify-center"
+                className="absolute w-full h-full"
                 style={{
                   transform: `rotate(${angle}deg)`,
-                  clipPath: `polygon(50% 50%, 100% 0%, 100% 100%)`,
+                  clipPath: `polygon(50% 50%, ${50 + 50 * Math.cos((0 - 90) * Math.PI / 180)}% ${50 + 50 * Math.sin((0 - 90) * Math.PI / 180)}%, ${50 + 50 * Math.cos((segmentAngle - 90) * Math.PI / 180)}% ${50 + 50 * Math.sin((segmentAngle - 90) * Math.PI / 180)}%)`,
                   background: COLORS[index],
                 }}
               >
                 <div
-                  className="absolute inset-0 flex items-center justify-center text-white font-bold text-2xl"
+                  className="absolute top-[25%] left-1/2 -translate-x-1/2 text-white font-bold text-center whitespace-nowrap"
                   style={{
-                    transform: `rotate(${(360 / REWARD_OPTIONS.length) / 2}deg) translateY(-60px)`,
+                    transform: `rotate(${segmentAngle / 2}deg)`,
                   }}
                 >
-                  {credits}
+                  <div className="text-3xl">{credits}</div>
+                  <div className="text-xs mt-1">
+                    {credits === 1 ? "Crédito" : "Créditos"}
+                  </div>
                 </div>
               </div>
             );
