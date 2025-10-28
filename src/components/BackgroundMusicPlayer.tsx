@@ -66,6 +66,25 @@ export const BackgroundMusicPlayer = ({ onAudioData }: BackgroundMusicPlayerProp
 
     playAudio();
 
+    // En iOS, intentar reproducir con cualquier interacción del usuario
+    const handleFirstInteraction = async () => {
+      if (!isPlaying && audioRef.current) {
+        try {
+          await audioRef.current.play();
+          setIsPlaying(true);
+          setupAudioContext();
+          // Remover listeners después de la primera reproducción exitosa
+          document.removeEventListener('touchstart', handleFirstInteraction);
+          document.removeEventListener('click', handleFirstInteraction);
+        } catch (err) {
+          console.log("No se pudo reproducir");
+        }
+      }
+    };
+
+    document.addEventListener('touchstart', handleFirstInteraction, { once: true });
+    document.addEventListener('click', handleFirstInteraction, { once: true });
+
     return () => {
       if (animationFrameRef.current) {
         cancelAnimationFrame(animationFrameRef.current);

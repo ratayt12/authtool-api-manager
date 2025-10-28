@@ -108,48 +108,59 @@ export const ElectricBackground = ({ color = "200 100% 50%", segmentColor = "200
       pulseSpeed: number;
       pulsePhase: number;
 
+      baseSpeed: number;
+      baseAlpha: number;
+
       constructor() {
         this.x = Math.random() * canvas.width;
         this.y = Math.random() * canvas.height;
         this.length = Math.random() * 100 + 50;
         this.angle = Math.random() * Math.PI * 2;
         this.speed = Math.random() * 0.5 + 0.2;
+        this.baseSpeed = this.speed;
         this.alpha = Math.random() * 0.5 + 0.3;
+        this.baseAlpha = this.alpha;
         this.pulseSpeed = Math.random() * 0.05 + 0.02;
         this.pulsePhase = Math.random() * Math.PI * 2;
       }
 
-      draw(timestamp: number) {
+      draw(timestamp: number, audioIntensity: number) {
         if (!ctx) return;
 
         const pulse = Math.sin(timestamp * this.pulseSpeed + this.pulsePhase) * 0.3 + 0.7;
-        const currentAlpha = this.alpha * pulse;
+        const intensityBoost = 1 + (audioIntensity * 1.5);
+        const currentAlpha = this.alpha * pulse * intensityBoost;
+        const lineWidth = 3 * (1 + audioIntensity * 0.8);
 
         ctx.save();
         ctx.translate(this.x, this.y);
         ctx.rotate(this.angle);
 
         // Main segment
-        ctx.strokeStyle = `hsla(${segmentColor} / ${currentAlpha})`;
-        ctx.lineWidth = 3;
+        ctx.strokeStyle = `hsla(${segmentColor} / ${Math.min(currentAlpha, 1)})`;
+        ctx.lineWidth = lineWidth;
         ctx.shadowColor = `hsl(${segmentColor})`;
-        ctx.shadowBlur = 20;
+        ctx.shadowBlur = 20 * intensityBoost;
 
         ctx.beginPath();
         ctx.moveTo(0, 0);
         ctx.lineTo(this.length, 0);
         ctx.stroke();
 
-        // Glow effect
-        ctx.strokeStyle = `hsla(${segmentColor} / ${currentAlpha * 0.5})`;
-        ctx.lineWidth = 6;
-        ctx.shadowBlur = 30;
+        // Glow effect - más intenso en beats
+        ctx.strokeStyle = `hsla(${segmentColor} / ${Math.min(currentAlpha * 0.5, 0.8)})`;
+        ctx.lineWidth = lineWidth * 2;
+        ctx.shadowBlur = 30 * intensityBoost;
         ctx.stroke();
 
         ctx.restore();
       }
 
-      update() {
+      update(audioIntensity: number) {
+        // Aumentar velocidad y alpha basado en la intensidad del audio
+        this.speed = this.baseSpeed * (1 + audioIntensity * 2);
+        this.alpha = this.baseAlpha * (1 + audioIntensity * 0.5);
+        
         this.x += Math.cos(this.angle) * this.speed;
         this.y += Math.sin(this.angle) * this.speed;
 
@@ -196,9 +207,20 @@ export const ElectricBackground = ({ color = "200 100% 50%", segmentColor = "200
 
       // Update and draw segments con intensidad basada en audio
       segments.forEach(segment => {
-        segment.draw(timestamp * (1 + intensity * 2));
-        segment.update();
+        segment.draw(timestamp * (1 + intensity * 2), intensity);
+        segment.update(intensity);
       });
+
+      // En beats muy fuertes, agregar segmentos temporales
+      if (isBeat && segments.length < 25) {
+        segments.push(new ElectricSegment());
+        segments.push(new ElectricSegment());
+      }
+
+      // Eliminar segmentos extra cuando la intensidad baja
+      if (!isBeat && segments.length > 15) {
+        segments.splice(15, segments.length - 15);
+      }
 
       // Update and draw lightnings
       for (let i = lightnings.length - 1; i >= 0; i--) {
