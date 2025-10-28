@@ -1,159 +1,270 @@
-import { useState, useEffect, useRef } from "react";
-import { Volume2, VolumeX, Play, Pause, Music } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { Music, Pause, Play, Volume2, VolumeX } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { motion, AnimatePresence } from "framer-motion";
 
+// Declaraciones mínimas para el API de YouTube sin instalar tipos adicionales
+declare global {
+  interface Window {
+    YT: any;
+    onYouTubeIframeAPIReady: () => void;
+  }
+}
+
+const VIDEO_ID = "sPQW18No8_0"; // Música de fondo (YouTube)
+
 export const BackgroundMusicPlayer = () => {
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [volume, setVolume] = useState(70);
-  const [isMuted, setIsMuted] = useState(false);
-  const [showControls, setShowControls] = useState(true);
-  const [showStartButton, setShowStartButton] = useState(true);
+  const playerContainerRef = useRef<HTMLDivElement>(null);
+  const playerRef = useRef<any>(null);
+
   const [isReady, setIsReady] = useState(false);
-  const audioRef = useRef<HTMLAudioElement>(null);
+  const [isPlaying, setIsPlaying] = useState(true);
+  const [isMuted, setIsMuted] = useState(true); // iOS/Android requieren autoplay silenciado
+  const [volume, setVolume] = useState(70);
+  const [showControls, setShowControls] = useState(false);
 
+  // Carga del API de YouTube e inicialización del reproductor oculto
   useEffect(() => {
-    if (audioRef.current) {
-      audioRef.current.volume = (isMuted ? 0 : volume) / 100;
-    }
-  }, [volume, isMuted]);
+    const createPlayer = () => {
+      if (!playerContainerRef.current || playerRef.current || !window.YT?.Player) return;
 
-  const handleStartMusic = () => {
-    if (audioRef.current) {
-      audioRef.current.play().then(() => {
-        setIsPlaying(true);
-        setShowStartButton(false);
-        setIsReady(true);
-      }).catch(error => {
-        console.error("Error playing audio:", error);
+      playerRef.current = new window.YT.Player(playerContainerRef.current, {
+        height: "0",
+        width: "0",
+        videoId: VIDEO_ID,
+        playerVars: {
+          autoplay: 1,
+          mute: 1, // requerido para autoplay en móviles
+          loop: 1,
+          playlist: VIDEO_ID,
+          controls: 0,
+          disablekb: 1,
+          modestbranding: 1,
+          rel: 0,
+          playsinline: 1,
+          fs: 0,
+          iv_load_policy: 3,
+          origin: window.location.origin,
+        },
+        events: {
+          onReady: (e: any) => {
+            try {
+              e.target.mute();
+              e.target.setVolume(volume);
+              e.target.playVideo();
+              setIsReady(true);
+              setIsPlaying(true);
+              setIsMuted(true);
+            } catch (err) {
+              console.error("YT onReady error:", err);
+            }
+          },
+          onStateChange: (e: any) => {
+            const s = e?.data;
+            if (s === window.YT.PlayerState.PLAYING) setIsPlaying(true);
+            if (s === window.YT.PlayerState.PAUSED) setIsPlaying(false);
+            if (s === window.YT.PlayerState.ENDED) e.target.playVideo();
+          },
+        },
       });
+    };
+
+    // Ya cargado
+    if (window.YT?.Player) {
+      createPlayer();
+      return;
     }
+
+    // Insertar script solo una vez
+    const existing = document.getElementById("youtube-iframe-api");
+    if (!existing) {
+      const tag = document.createElement("script");
+      tag.src = "https://www.youtube.com/iframe_api";
+      tag.id = "youtube-iframe-api";
+      document.body.appendChild(tag);
+    }
+
+    window.onYouTubeIframeAPIReady = () => createPlayer();
+
+    return () => {
+      // Limpieza al desmontar
+      try {
+        playerRef.current?.destroy?.();
+      } catch {}
+    };
+  }, [volume]);
+
+  // Sincronizar volumen cuando cambie (si ya hay player)
+  useEffect(() => {
+    try {
+      if (playerRef.current && isReady) {
+        playerRef.current.setVolume(volume);
+        if (volume > 0 && isMuted) {
+          playerRef.current.unMute();
+          setIsMuted(false);
+        }
+      }
+    } catch {}
+  }, [volume, isReady, isMuted]);
+
+  const handleMainButton = () => {
+    if (!playerRef.current) return;
+
+    // Primera pulsación: activar sonido y reproducir
+    if (isMuted) {
+      try {
+        playerRef.current.unMute();
+        setIsMuted(false);
+        playerRef.current.playVideo();
+        setIsPlaying(true);
+      } catch (e) {
+        console.error(e);
+      }
+      setShowControls(true);
+      return;
+    }
+
+    // Si no está silenciado, alternar play/pausa
+    try {
+      const state = playerRef.current.getPlayerState?.();
+      if (state === window.YT.PlayerState.PLAYING) {
+        playerRef.current.pauseVideo();
+        setIsPlaying(false);
+      } else {
+        playerRef.current.playVideo();
+        setIsPlaying(true);
+      }
+    } catch (e) {
+      console.error(e);
+    }
+
+    setShowControls((v) => !v);
   };
 
   const togglePlay = () => {
-    if (audioRef.current) {
-      if (isPlaying) {
-        audioRef.current.pause();
+    if (!playerRef.current) return;
+    try {
+      const state = playerRef.current.getPlayerState?.();
+      if (state === window.YT.PlayerState.PLAYING) {
+        playerRef.current.pauseVideo();
         setIsPlaying(false);
       } else {
-        audioRef.current.play();
+        playerRef.current.playVideo();
         setIsPlaying(true);
       }
+    } catch (e) {
+      console.error(e);
     }
   };
 
   const toggleMute = () => {
-    setIsMuted(!isMuted);
+    if (!playerRef.current) return;
+    try {
+      if (isMuted) {
+        playerRef.current.unMute();
+        setIsMuted(false);
+      } else {
+        playerRef.current.mute();
+        setIsMuted(true);
+      }
+    } catch (e) {
+      console.error(e);
+    }
   };
 
   const handleVolumeChange = (value: number[]) => {
-    setVolume(value[0]);
-    if (value[0] > 0) {
-      setIsMuted(false);
+    const v = value?.[0] ?? 0;
+    setVolume(v);
+    try {
+      if (playerRef.current) {
+        playerRef.current.setVolume(v);
+        if (v > 0 && isMuted) {
+          playerRef.current.unMute();
+          setIsMuted(false);
+        }
+      }
+    } catch (e) {
+      console.error(e);
     }
   };
 
   return (
     <>
-      {/* Hidden Audio Element */}
-      <audio
-        ref={audioRef}
-        loop
-        preload="auto"
+      {/* Reproductor oculto (necesario para iOS) */}
+      <div
+        ref={playerContainerRef}
+        aria-hidden
+        className="absolute -z-10 h-0 w-0 overflow-hidden"
+      />
+
+      {/* Botón flotante y panel de control */}
+      <div
+        className="fixed bottom-6 right-6 z-50"
+        onMouseEnter={() => setShowControls(true)}
+        onMouseLeave={() => setShowControls(false)}
       >
-        <source src="https://www.youtube.com/watch?v=sPQW18No8_0" type="audio/mpeg" />
-      </audio>
-
-      {/* Start Music Button Overlay */}
-      <AnimatePresence>
-        {showStartButton && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[100] flex items-center justify-center bg-background/80 backdrop-blur-sm"
-            onClick={handleStartMusic}
-          >
-            <motion.div
-              initial={{ scale: 0.8, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.8, opacity: 0 }}
-              transition={{ delay: 0.2 }}
-              className="text-center space-y-6"
-            >
-              <motion.div
-                animate={{ 
-                  rotate: [0, 10, -10, 0],
-                  scale: [1, 1.1, 1]
-                }}
-                transition={{ 
-                  duration: 2,
-                  repeat: Infinity,
-                  ease: "easeInOut"
-                }}
-                className="mx-auto w-24 h-24 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center shadow-glow"
-              >
-                <Music className="h-12 w-12 text-white" />
-              </motion.div>
-              <div>
-                <h3 className="text-2xl font-bold mb-2 bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-                  Activar Música de Fondo
-                </h3>
-                <p className="text-muted-foreground">Toca para comenzar</p>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-      
-      {/* Music Controls */}
-      {isReady && (
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="fixed bottom-6 right-6 z-50 bg-card/95 backdrop-blur-sm border border-border rounded-xl p-4 shadow-lg transition-all duration-300 hover:shadow-glow"
-          onMouseEnter={() => setShowControls(true)}
+        <Button
+          variant="secondary"
+          size="icon"
+          onClick={handleMainButton}
+          aria-label={isMuted ? "Activar sonido" : isPlaying ? "Pausar música" : "Reproducir música"}
+          className="rounded-full shadow-glow hover:scale-105 transition-transform"
         >
-          <div className="flex items-center gap-3">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={togglePlay}
-              className="h-10 w-10 rounded-full hover:bg-primary/20"
-            >
-              {isPlaying ? (
-                <Pause className="h-5 w-5" />
-              ) : (
-                <Play className="h-5 w-5" />
-              )}
-            </Button>
+          <Music className="h-5 w-5" />
+        </Button>
 
-            <div className={`flex items-center gap-2 transition-all duration-300 ${showControls ? 'opacity-100 w-32' : 'opacity-0 w-0 overflow-hidden'}`}>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={toggleMute}
-                className="h-8 w-8"
-              >
-                {isMuted || volume === 0 ? (
-                  <VolumeX className="h-4 w-4" />
-                ) : (
-                  <Volume2 className="h-4 w-4" />
-                )}
-              </Button>
-              
-              <Slider
-                value={[isMuted ? 0 : volume]}
-                onValueChange={handleVolumeChange}
-                max={100}
-                step={1}
-                className="w-20"
-              />
-            </div>
-          </div>
-        </motion.div>
-      )}
+        <AnimatePresence>
+          {(showControls || !isMuted) && (
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 10 }}
+              className="mt-3 w-[220px] rounded-xl border border-border bg-card/95 p-3 backdrop-blur-sm shadow-lg"
+            >
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={togglePlay}
+                  className="h-9 w-9 rounded-full"
+                  aria-label={isPlaying ? "Pausar" : "Reproducir"}
+                >
+                  {isPlaying ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
+                </Button>
+
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={toggleMute}
+                  className="h-9 w-9"
+                  aria-label={isMuted ? "Activar sonido" : "Silenciar"}
+                >
+                  {isMuted || volume === 0 ? (
+                    <VolumeX className="h-4 w-4" />
+                  ) : (
+                    <Volume2 className="h-4 w-4" />
+                  )}
+                </Button>
+
+                <Slider
+                  value={[isMuted ? 0 : volume]}
+                  onValueChange={handleVolumeChange}
+                  max={100}
+                  step={1}
+                  className="w-full"
+                  aria-label="Volumen"
+                />
+              </div>
+              {!isReady && (
+                <p className="mt-2 text-xs text-muted-foreground">
+                  Cargando música…
+                </p>
+              )}
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
     </>
   );
 };
