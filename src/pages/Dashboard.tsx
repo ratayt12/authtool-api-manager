@@ -17,6 +17,8 @@ import { WeeklyRewardWheel } from "@/components/WeeklyRewardWheel";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { LanguageSelector } from "@/components/LanguageSelector";
 import { DeviceTracker } from "@/components/DeviceTracker";
+import { SonicLoadingScreen } from "@/components/SonicLoadingScreen";
+import { AnimatePresence } from "framer-motion";
 
 interface Profile {
   id: string;
@@ -38,6 +40,7 @@ interface Profile {
 const Dashboard = () => {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
+  const [showLoadingScreen, setShowLoadingScreen] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
   const [isOwner, setIsOwner] = useState(false);
   const [refreshKeysTrigger, setRefreshKeysTrigger] = useState(0);
@@ -159,11 +162,13 @@ const Dashboard = () => {
     toast.success("Logged out successfully");
   };
 
-  if (loading) {
+  if (loading || showLoadingScreen) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      </div>
+      <AnimatePresence>
+        {showLoadingScreen && (
+          <SonicLoadingScreen onComplete={() => setShowLoadingScreen(false)} />
+        )}
+      </AnimatePresence>
     );
   }
 
@@ -234,7 +239,7 @@ const Dashboard = () => {
       <div className="container mx-auto p-4 md:p-8 space-y-6">
         {/* Header with Welcome Message */}
         <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent mb-2">
+          <h1 className="text-4xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent mb-2 animate-pulse">
             {t("welcome")}
           </h1>
           <p className="text-muted-foreground">

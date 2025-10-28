@@ -5,6 +5,7 @@ import { Gift, Sparkles, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface WeeklyRewardWheelProps {
   onRewardClaimed: () => void;
@@ -16,6 +17,7 @@ const REWARD_OPTIONS = [0, 1, 2, 3];
 const COLORS = ["hsl(var(--destructive))", "hsl(var(--primary))", "hsl(var(--accent))", "hsl(var(--chart-2))"];
 
 export const WeeklyRewardWheel = ({ onRewardClaimed, isOpen = true, onClose }: WeeklyRewardWheelProps) => {
+  const { t } = useLanguage();
   const [canSpin, setCanSpin] = useState(false);
   const [isSpinning, setIsSpinning] = useState(false);
   const [rotation, setRotation] = useState(0);
@@ -159,7 +161,7 @@ export const WeeklyRewardWheel = ({ onRewardClaimed, isOpen = true, onClose }: W
         <div className="flex items-center gap-2">
           <Gift className="w-5 h-5 text-primary" />
           <h3 className="font-bold text-lg bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-            SonicMode Gifts 🎁
+            {t("wheelGifts")}
           </h3>
         </div>
         {onClose && (
@@ -202,7 +204,7 @@ export const WeeklyRewardWheel = ({ onRewardClaimed, isOpen = true, onClose }: W
                 >
                   <div className="text-3xl">{credits}</div>
                   <div className="text-xs mt-1">
-                    {credits === 1 ? "Crédito" : "Créditos"}
+                    {credits === 1 ? t("credit") : t("credits")}
                   </div>
                 </div>
               </div>
@@ -228,7 +230,7 @@ export const WeeklyRewardWheel = ({ onRewardClaimed, isOpen = true, onClose }: W
         disabled={!canSpin || isSpinning}
         className="w-full bg-gradient-to-r from-primary to-accent hover:opacity-90 transition-opacity disabled:opacity-50"
       >
-        {isSpinning ? "Spinning..." : canSpin ? "Spin Now!" : `Next spin in ${formatNextSpinTime()}`}
+        {isSpinning ? t("spinning") : canSpin ? t("spinNow") : `${t("nextSpinIn")} ${formatNextSpinTime()}`}
       </Button>
 
       {/* Reward popup */}
@@ -247,10 +249,10 @@ export const WeeklyRewardWheel = ({ onRewardClaimed, isOpen = true, onClose }: W
               <Gift className="w-20 h-20 text-primary mb-4" />
             </motion.div>
             <h4 className="text-2xl font-bold text-primary mb-2">
-              {wonCredits > 0 ? `You Won!` : "Almost!"}
+              {wonCredits > 0 ? t("youWon") : t("almost")}
             </h4>
             <p className="text-4xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-              {wonCredits} {wonCredits === 1 ? "Credit" : "Credits"}
+              {wonCredits} {wonCredits === 1 ? t("credit") : t("credits")}
             </p>
           </motion.div>
         )}

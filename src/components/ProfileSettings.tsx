@@ -685,7 +685,7 @@ export const ProfileSettings = ({ profile, onProfileUpdate, onOpenWheel }: Profi
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Gift className="h-5 w-5 text-primary animate-pulse" />
-            Ruleta Gift de Créditos
+            {t("wheelRuletaGift")}
           </CardTitle>
           <CardDescription>
             Gira la ruleta cada semana y gana créditos gratis
@@ -708,8 +708,8 @@ export const ProfileSettings = ({ profile, onProfileUpdate, onOpenWheel }: Profi
                 onClick={onOpenWheel}
                 className="w-full bg-gradient-to-r from-primary to-accent hover:opacity-90"
               >
-                <Gift className="mr-2 h-4 w-4" />
-                Abrir Ruleta de Premios
+                <Gift className="mr-2 h-4 w-4 animate-bounce" />
+                {t("openWheel")}
               </Button>
             </div>
           </div>

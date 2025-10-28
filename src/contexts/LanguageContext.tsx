@@ -392,6 +392,60 @@ const translations: Translations = {
     es: "Nombre de Usuario",
     pt: "Nome de Usuário",
     vi: "Tên người dùng"
+  },
+  wheelGifts: {
+    en: "SonicMode Gifts 🎁",
+    es: "Regalos SonicMode 🎁",
+    pt: "Presentes SonicMode 🎁",
+    vi: "Quà tặng SonicMode 🎁"
+  },
+  spinNow: {
+    en: "Spin Now!",
+    es: "¡Girar Ahora!",
+    pt: "Girar Agora!",
+    vi: "Quay Ngay!"
+  },
+  spinning: {
+    en: "Spinning...",
+    es: "Girando...",
+    pt: "Girando...",
+    vi: "Đang quay..."
+  },
+  nextSpinIn: {
+    en: "Next spin in",
+    es: "Próximo giro en",
+    pt: "Próximo giro em",
+    vi: "Quay tiếp theo sau"
+  },
+  youWon: {
+    en: "You Won!",
+    es: "¡Ganaste!",
+    pt: "Você Ganhou!",
+    vi: "Bạn Thắng!"
+  },
+  almost: {
+    en: "Almost!",
+    es: "¡Casi!",
+    pt: "Quase!",
+    vi: "Gần rồi!"
+  },
+  credit: {
+    en: "Credit",
+    es: "Crédito",
+    pt: "Crédito",
+    vi: "Tín dụng"
+  },
+  wheelRuletaGift: {
+    en: "Wheel Gift of Credits",
+    es: "Ruleta Gift de Créditos",
+    pt: "Roleta Presente de Créditos",
+    vi: "Vòng Quay Quà Tín dụng"
+  },
+  openWheel: {
+    en: "Open Wheel",
+    es: "Abrir Ruleta",
+    pt: "Abrir Roleta",
+    vi: "Mở Vòng Quay"
   }
 };
 
