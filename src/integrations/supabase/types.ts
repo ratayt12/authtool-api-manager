@@ -172,6 +172,7 @@ export type Database = {
           credits: number
           id: string
           last_username_change: string | null
+          lightning_color: string | null
           theme_colors: Json | null
           updated_at: string
           username: string
@@ -185,6 +186,7 @@ export type Database = {
           credits?: number
           id: string
           last_username_change?: string | null
+          lightning_color?: string | null
           theme_colors?: Json | null
           updated_at?: string
           username: string
@@ -198,6 +200,7 @@ export type Database = {
           credits?: number
           id?: string
           last_username_change?: string | null
+          lightning_color?: string | null
           theme_colors?: Json | null
           updated_at?: string
           username?: string

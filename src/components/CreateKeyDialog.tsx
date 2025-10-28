@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface CreateKeyDialogProps {
   children: React.ReactNode;
@@ -18,6 +19,7 @@ export const CreateKeyDialog = ({ children, onKeyCreated, disabled = false }: Cr
   const [open, setOpen] = useState(false);
   const [duration, setDuration] = useState<string>("1day");
   const [loading, setLoading] = useState(false);
+  const { t } = useLanguage();
 
   const handleCreateKey = async () => {
     setLoading(true);
@@ -49,22 +51,22 @@ export const CreateKeyDialog = ({ children, onKeyCreated, disabled = false }: Cr
       </DialogTrigger>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Create New Key</DialogTitle>
+          <DialogTitle>{t("createNewKey")}</DialogTitle>
           <DialogDescription>
-            Select the duration for your new API key. Credits required vary by duration.
+            {t("selectDurationDescription")}
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-4 py-4">
           <div className="space-y-2">
-            <Label htmlFor="duration">Key Duration</Label>
+            <Label htmlFor="duration">{t("keyDuration")}</Label>
             <Select value={duration} onValueChange={setDuration}>
               <SelectTrigger id="duration">
-                <SelectValue placeholder="Select duration" />
+                <SelectValue placeholder={t("keyDuration")} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="1day">1 Day (1 Credit)</SelectItem>
-                <SelectItem value="1week">1 Week (3 Credits)</SelectItem>
-                <SelectItem value="25days">1 Month (5 Credits)</SelectItem>
+                <SelectItem value="1day">{t("oneDay")}</SelectItem>
+                <SelectItem value="1week">{t("oneWeek")}</SelectItem>
+                <SelectItem value="25days">{t("oneMonth")}</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -75,7 +77,7 @@ export const CreateKeyDialog = ({ children, onKeyCreated, disabled = false }: Cr
             onClick={() => setOpen(false)}
             disabled={loading}
           >
-            Cancel
+            {t("cancel")}
           </Button>
           <Button
             onClick={handleCreateKey}
@@ -83,7 +85,7 @@ export const CreateKeyDialog = ({ children, onKeyCreated, disabled = false }: Cr
             className="bg-gradient-to-r from-primary to-accent hover:opacity-90"
           >
             {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            Create Key
+            {t("createKey")}
           </Button>
         </DialogFooter>
       </DialogContent>

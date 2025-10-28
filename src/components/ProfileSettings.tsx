@@ -32,6 +32,7 @@ interface ProfileSettingsProps {
       accent?: string;
     };
     background_color?: string;
+    lightning_color?: string;
   };
   onProfileUpdate: () => void;
 }
@@ -44,6 +45,7 @@ export const ProfileSettings = ({ profile, onProfileUpdate }: ProfileSettingsPro
   const [primaryColor, setPrimaryColor] = useState(profile.theme_colors?.primary || "263 70% 50%");
   const [accentColor, setAccentColor] = useState(profile.theme_colors?.accent || "263 70% 60%");
   const [backgroundColor, setBackgroundColor] = useState(profile.background_color || "240 10% 3.9%");
+  const [lightningColor, setLightningColor] = useState(profile.lightning_color || "200 100% 50%");
   const [canChangeUsername, setCanChangeUsername] = useState(true);
   const [daysUntilUsernameChange, setDaysUntilUsernameChange] = useState(0);
   const [hasMFA, setHasMFA] = useState(false);
@@ -258,7 +260,8 @@ export const ProfileSettings = ({ profile, onProfileUpdate }: ProfileSettingsPro
             primary: primaryColor,
             accent: accentColor
           },
-          background_color: backgroundColor
+          background_color: backgroundColor,
+          lightning_color: lightningColor
         })
         .eq("id", profile.id);
 
@@ -424,14 +427,14 @@ export const ProfileSettings = ({ profile, onProfileUpdate }: ProfileSettingsPro
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Palette className="h-5 w-5" />
-            Theme Customization
+            {t("themeCustomization")}
           </CardTitle>
-          <CardDescription>Customize your UI and website colors</CardDescription>
+          <CardDescription>{t("customizeColorsDescription")}</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="primary-color">Primary Color</Label>
+              <Label htmlFor="primary-color">{t("primaryColor")}</Label>
               <Input
                 id="primary-color"
                 type="color"
@@ -442,7 +445,7 @@ export const ProfileSettings = ({ profile, onProfileUpdate }: ProfileSettingsPro
               <p className="text-xs text-muted-foreground">HSL: {primaryColor}</p>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="accent-color">Accent Color</Label>
+              <Label htmlFor="accent-color">{t("accentColor")}</Label>
               <Input
                 id="accent-color"
                 type="color"
@@ -453,7 +456,7 @@ export const ProfileSettings = ({ profile, onProfileUpdate }: ProfileSettingsPro
               <p className="text-xs text-muted-foreground">HSL: {accentColor}</p>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="background-color">Background Color</Label>
+              <Label htmlFor="background-color">{t("backgroundColor")}</Label>
               <Input
                 id="background-color"
                 type="color"
@@ -463,10 +466,21 @@ export const ProfileSettings = ({ profile, onProfileUpdate }: ProfileSettingsPro
               />
               <p className="text-xs text-muted-foreground">HSL: {backgroundColor}</p>
             </div>
+            <div className="space-y-2">
+              <Label htmlFor="lightning-color">{t("lightningColor")}</Label>
+              <Input
+                id="lightning-color"
+                type="color"
+                value={hslToHex(lightningColor)}
+                onChange={(e) => setLightningColor(hexToHsl(e.target.value))}
+                className="h-12 cursor-pointer"
+              />
+              <p className="text-xs text-muted-foreground">HSL: {lightningColor}</p>
+            </div>
           </div>
           <Button onClick={handleColorChange} disabled={loading} className="w-full">
             {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            Save Colors
+            {t("saveColors")}
           </Button>
         </CardContent>
       </Card>
@@ -476,22 +490,22 @@ export const ProfileSettings = ({ profile, onProfileUpdate }: ProfileSettingsPro
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <User className="h-5 w-5" />
-            Change Username
+            {t("changeUsername")}
           </CardTitle>
           <CardDescription>
             {canChangeUsername 
-              ? "You can change your username once every 30 days"
-              : `You can change your username in ${daysUntilUsernameChange} days`}
+              ? t("usernameChangeDescription")
+              : `${t("usernameChangeWait")} ${daysUntilUsernameChange} ${t("days")}`}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="username">New Username</Label>
+            <Label htmlFor="username">{t("newUsername")}</Label>
             <Input
               id="username"
               value={newUsername}
               onChange={(e) => setNewUsername(e.target.value)}
-              placeholder="Enter new username"
+              placeholder={t("enterNewUsername")}
               disabled={!canChangeUsername}
             />
           </div>
@@ -501,7 +515,7 @@ export const ProfileSettings = ({ profile, onProfileUpdate }: ProfileSettingsPro
             className="w-full"
           >
             {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            Update Username
+            {t("updateUsername")}
           </Button>
         </CardContent>
       </Card>
@@ -511,29 +525,29 @@ export const ProfileSettings = ({ profile, onProfileUpdate }: ProfileSettingsPro
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Lock className="h-5 w-5" />
-            Change Password
+            {t("changePassword")}
           </CardTitle>
-          <CardDescription>Update your password anytime</CardDescription>
+          <CardDescription>{t("passwordChangeDescription")}</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="new-password">New Password</Label>
+            <Label htmlFor="new-password">{t("newPassword")}</Label>
             <Input
               id="new-password"
               type="password"
               value={newPassword}
               onChange={(e) => setNewPassword(e.target.value)}
-              placeholder="Enter new password"
+              placeholder={t("newPassword")}
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="confirm-password">Confirm Password</Label>
+            <Label htmlFor="confirm-password">{t("confirmPassword")}</Label>
             <Input
               id="confirm-password"
               type="password"
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
-              placeholder="Confirm new password"
+              placeholder={t("confirmPassword")}
             />
           </div>
           <Button 
@@ -542,7 +556,7 @@ export const ProfileSettings = ({ profile, onProfileUpdate }: ProfileSettingsPro
             className="w-full"
           >
             {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            Update Password
+            {t("updatePassword")}
           </Button>
         </CardContent>
       </Card>
@@ -552,16 +566,16 @@ export const ProfileSettings = ({ profile, onProfileUpdate }: ProfileSettingsPro
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Globe className="h-5 w-5" />
-            Language Preference
+            {t("languagePreference")}
           </CardTitle>
-          <CardDescription>Choose your preferred language</CardDescription>
+          <CardDescription>{t("selectLanguage")}</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="language">Language</Label>
+            <Label htmlFor="language">{t("language")}</Label>
             <Select value={language} onValueChange={(value: any) => setLanguage(value)}>
               <SelectTrigger id="language">
-                <SelectValue placeholder="Select language" />
+                <SelectValue placeholder={t("language")} />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="en">English</SelectItem>

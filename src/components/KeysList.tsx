@@ -9,6 +9,7 @@ import { Loader2, RefreshCw, Trash2, Info, Ban, Shield, Lock, Unlock, Search } f
 import { KeyDetailsDialog } from "./KeyDetailsDialog";
 import { RequestActions } from "./RequestActions";
 import { KeyPrivateMessages } from "./KeyPrivateMessages";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface Key {
   id: string;
@@ -33,6 +34,7 @@ export const KeysList = () => {
   const [selectedKey, setSelectedKey] = useState<string | null>(null);
   const [devices, setDevices] = useState<Device[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
+  const { t } = useLanguage();
 
   useEffect(() => {
     loadKeys();
@@ -198,9 +200,9 @@ export const KeysList = () => {
   return (
     <Card className="shadow-xl border-border/50">
       <CardHeader>
-        <CardTitle>Your Keys</CardTitle>
+        <CardTitle>{t("yourKeys")}</CardTitle>
         <CardDescription>
-          Manage and monitor your generated API keys
+          {t("manageKeysDescription")}
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -208,7 +210,7 @@ export const KeysList = () => {
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Search keys..."
+              placeholder={t("searchKeys")}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="pl-10"
@@ -217,7 +219,7 @@ export const KeysList = () => {
         </div>
         {keys.length === 0 ? (
           <div className="text-center py-8 text-muted-foreground">
-            No keys created yet. Create your first key to get started!
+            {t("noKeysYet")}
           </div>
         ) : (
           <div className="space-y-4">
@@ -245,9 +247,9 @@ export const KeysList = () => {
                         <KeyPrivateMessages keyCode={key.key_code} />
                       </div>
                       <div className="text-sm text-muted-foreground space-y-1">
-                        <p>Duration: <span className="text-foreground font-medium">{key.duration}</span></p>
-                        <p>Created: <span className="text-foreground">{new Date(key.created_at).toLocaleDateString()}</span></p>
-                        <p>Activations: <span className="text-foreground">{key.activate_count}</span></p>
+                        <p>{t("duration")}: <span className="text-foreground font-medium">{key.duration}</span></p>
+                        <p>{t("created")}: <span className="text-foreground">{new Date(key.created_at).toLocaleDateString()}</span></p>
+                        <p>{t("activations")}: <span className="text-foreground">{key.activate_count}</span></p>
                       </div>
                     </div>
                     <div className="flex flex-col gap-2">
@@ -259,7 +261,7 @@ export const KeysList = () => {
                             disabled={key.status === "deleted"}
                           >
                             <Info className="h-4 w-4 mr-1" />
-                            <span className="hidden sm:inline">Details</span>
+                            <span className="hidden sm:inline">{t("details")}</span>
                           </Button>
                         </KeyDetailsDialog>
                         <Button
@@ -269,7 +271,7 @@ export const KeysList = () => {
                           disabled={key.status === "deleted" || key.status === "blocked"}
                         >
                           <RefreshCw className="h-4 w-4 mr-1" />
-                          <span className="hidden sm:inline">Reset</span>
+                          <span className="hidden sm:inline">{t("reset")}</span>
                         </Button>
                         {key.status === "blocked" ? (
                           <Button
@@ -278,7 +280,7 @@ export const KeysList = () => {
                             onClick={() => handleUnblock(key.key_code)}
                           >
                             <Unlock className="h-4 w-4 mr-1" />
-                            <span className="hidden sm:inline">Unblock</span>
+                            <span className="hidden sm:inline">{t("unblock")}</span>
                           </Button>
                         ) : key.status === "deleted" ? (
                           <Button
@@ -287,7 +289,7 @@ export const KeysList = () => {
                             disabled
                           >
                             <Lock className="h-4 w-4 mr-1" />
-                            <span className="hidden sm:inline">Block</span>
+                            <span className="hidden sm:inline">{t("block")}</span>
                           </Button>
                         ) : (
                           <Button
@@ -296,7 +298,7 @@ export const KeysList = () => {
                             onClick={() => handleBlock(key.key_code)}
                           >
                             <Lock className="h-4 w-4 mr-1" />
-                            <span className="hidden sm:inline">Block</span>
+                            <span className="hidden sm:inline">{t("block")}</span>
                           </Button>
                         )}
                         <Button
@@ -306,7 +308,7 @@ export const KeysList = () => {
                           disabled={key.status === "deleted"}
                         >
                           <Trash2 className="h-4 w-4 mr-1" />
-                          <span className="hidden sm:inline">Delete</span>
+                          <span className="hidden sm:inline">{t("delete")}</span>
                         </Button>
                       </div>
                     </div>

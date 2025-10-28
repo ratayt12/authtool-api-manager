@@ -12,6 +12,7 @@ import { DeviceAuthPanel } from "@/components/DeviceAuthPanel";
 import { PrivateMessages } from "@/components/PrivateMessages";
 import { ProfileSettings } from "@/components/ProfileSettings";
 import { ParticleEffect } from "@/components/ParticleEffect";
+import { ElectricBackground } from "@/components/ElectricBackground";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { LanguageSelector } from "@/components/LanguageSelector";
 
@@ -28,6 +29,7 @@ interface Profile {
     accent?: string;
   };
   background_color?: string;
+  lightning_color?: string;
 }
 
 const Dashboard = () => {
@@ -35,8 +37,14 @@ const Dashboard = () => {
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
   const [isOwner, setIsOwner] = useState(false);
+  const [refreshKeysTrigger, setRefreshKeysTrigger] = useState(0);
   const navigate = useNavigate();
   const { t } = useLanguage();
+
+  const handleKeyCreated = () => {
+    checkUser();
+    setRefreshKeysTrigger(prev => prev + 1);
+  };
 
   useEffect(() => {
     checkUser();
@@ -184,18 +192,19 @@ const Dashboard = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-accent/10 relative">
       <ParticleEffect />
+      <ElectricBackground color={profile?.lightning_color} />
       {isUserBanned && (
         <div className="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-xl bg-background/80">
           <Card className="max-w-md mx-4 shadow-2xl border-destructive/50">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-destructive">
-                <Shield className="h-5 w-5" />
-                Account Suspended
-              </CardTitle>
-              <CardDescription>
-                Your account has been temporarily suspended until{" "}
-                {new Date(profile.ban_until!).toLocaleString()}
-              </CardDescription>
+            <CardTitle className="flex items-center gap-2 text-destructive">
+              <Shield className="h-5 w-5" />
+              {t("accountSuspended")}
+            </CardTitle>
+            <CardDescription>
+              {t("accountSuspendedUntil")}{" "}
+              {new Date(profile.ban_until!).toLocaleString()}
+            </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="p-4 rounded-lg bg-destructive/10 border border-destructive/20">
@@ -225,7 +234,7 @@ const Dashboard = () => {
 
         {/* Top Action Buttons */}
         <div className="flex justify-center gap-2 flex-wrap mb-6">
-          <CreateKeyDialog onKeyCreated={checkUser} disabled={!!isUserBanned}>
+          <CreateKeyDialog onKeyCreated={handleKeyCreated} disabled={!!isUserBanned}>
             <Button className="touch-manipulation">
               <Key className="mr-2 h-4 w-4" />
               {t("createKey")}
@@ -284,7 +293,7 @@ const Dashboard = () => {
           </TabsList>
 
           <TabsContent value="keys" className="space-y-4">
-            <KeysList />
+            <KeysList key={refreshKeysTrigger} />
           </TabsContent>
 
           <TabsContent value="devices" className="space-y-4">
