@@ -41,6 +41,7 @@ const Dashboard = () => {
   const [isAdmin, setIsAdmin] = useState(false);
   const [isOwner, setIsOwner] = useState(false);
   const [refreshKeysTrigger, setRefreshKeysTrigger] = useState(0);
+  const [isWheelOpen, setIsWheelOpen] = useState(false);
   const navigate = useNavigate();
   const { t } = useLanguage();
 
@@ -197,7 +198,11 @@ const Dashboard = () => {
       <ParticleEffect />
       <ElectricBackground color={profile?.lightning_color} segmentColor={profile?.segment_color} />
       <DeviceTracker />
-      <WeeklyRewardWheel onRewardClaimed={checkUser} />
+      <WeeklyRewardWheel 
+        onRewardClaimed={checkUser} 
+        isOpen={isWheelOpen}
+        onClose={() => setIsWheelOpen(false)}
+      />
       {isUserBanned && (
         <div className="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-xl bg-background/80">
           <Card className="max-w-md mx-4 shadow-2xl border-destructive/50">
@@ -310,7 +315,13 @@ const Dashboard = () => {
           </TabsContent>
 
           <TabsContent value="profile" className="space-y-4">
-            {profile && <ProfileSettings profile={profile} onProfileUpdate={checkUser} />}
+            {profile && (
+              <ProfileSettings 
+                profile={profile} 
+                onProfileUpdate={checkUser}
+                onOpenWheel={() => setIsWheelOpen(true)}
+              />
+            )}
           </TabsContent>
         </Tabs>
       </div>

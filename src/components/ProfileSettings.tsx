@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
-import { Loader2, Palette, Lock, User, Globe, Shield, Copy, Check } from "lucide-react";
+import { Loader2, Palette, Lock, User, Globe, Shield, Copy, Check, Gift } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { 
   Select,
@@ -37,9 +37,10 @@ interface ProfileSettingsProps {
     segment_color?: string;
   };
   onProfileUpdate: () => void;
+  onOpenWheel?: () => void;
 }
 
-export const ProfileSettings = ({ profile, onProfileUpdate }: ProfileSettingsProps) => {
+export const ProfileSettings = ({ profile, onProfileUpdate, onOpenWheel }: ProfileSettingsProps) => {
   const [loading, setLoading] = useState(false);
   const [newUsername, setNewUsername] = useState(profile.username);
   const [newPassword, setNewPassword] = useState("");
@@ -675,6 +676,42 @@ export const ProfileSettings = ({ profile, onProfileUpdate }: ProfileSettingsPro
               <li>Enter the 6-digit code to verify</li>
               <li>Use codes from the app when logging in</li>
             </ol>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Rewards Wheel */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Gift className="h-5 w-5 text-primary animate-pulse" />
+            Ruleta Gift de Créditos
+          </CardTitle>
+          <CardDescription>
+            Gira la ruleta cada semana y gana créditos gratis
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="rounded-lg border border-primary/20 p-6 bg-gradient-to-br from-primary/5 to-accent/5">
+            <div className="flex flex-col items-center gap-4 text-center">
+              <div className="relative">
+                <Gift className="h-16 w-16 text-primary animate-bounce" />
+                <div className="absolute -top-1 -right-1 w-4 h-4 bg-accent rounded-full animate-ping" />
+              </div>
+              <div>
+                <h4 className="font-bold text-lg mb-2">¡Prueba tu suerte!</h4>
+                <p className="text-sm text-muted-foreground mb-4">
+                  Gira la ruleta una vez por semana y gana hasta 3 créditos gratis
+                </p>
+              </div>
+              <Button 
+                onClick={onOpenWheel}
+                className="w-full bg-gradient-to-r from-primary to-accent hover:opacity-90"
+              >
+                <Gift className="mr-2 h-4 w-4" />
+                Abrir Ruleta de Premios
+              </Button>
+            </div>
           </div>
         </CardContent>
       </Card>

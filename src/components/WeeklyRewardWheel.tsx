@@ -1,19 +1,21 @@
 import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Gift, Sparkles } from "lucide-react";
+import { Gift, Sparkles, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
 
 interface WeeklyRewardWheelProps {
   onRewardClaimed: () => void;
+  isOpen?: boolean;
+  onClose?: () => void;
 }
 
 const REWARD_OPTIONS = [0, 1, 2, 3];
 const COLORS = ["hsl(var(--destructive))", "hsl(var(--primary))", "hsl(var(--accent))", "hsl(var(--chart-2))"];
 
-export const WeeklyRewardWheel = ({ onRewardClaimed }: WeeklyRewardWheelProps) => {
+export const WeeklyRewardWheel = ({ onRewardClaimed, isOpen = true, onClose }: WeeklyRewardWheelProps) => {
   const [canSpin, setCanSpin] = useState(false);
   const [isSpinning, setIsSpinning] = useState(false);
   const [rotation, setRotation] = useState(0);
@@ -149,13 +151,27 @@ export const WeeklyRewardWheel = ({ onRewardClaimed }: WeeklyRewardWheelProps) =
     return `${hours}h`;
   };
 
+  if (!isOpen) return null;
+
   return (
     <Card className="fixed top-4 right-4 z-50 p-4 w-72 bg-gradient-to-br from-card/95 to-primary/5 backdrop-blur-sm border-primary/20 shadow-2xl">
-      <div className="flex items-center gap-2 mb-3">
-        <Gift className="w-5 h-5 text-primary" />
-        <h3 className="font-bold text-lg bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-          SonicMode Gifts 🎁
-        </h3>
+      <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center gap-2">
+          <Gift className="w-5 h-5 text-primary" />
+          <h3 className="font-bold text-lg bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+            SonicMode Gifts 🎁
+          </h3>
+        </div>
+        {onClose && (
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={onClose}
+            className="h-6 w-6 hover:bg-destructive/10"
+          >
+            <X className="h-4 w-4" />
+          </Button>
+        )}
       </div>
 
       <div className="relative w-56 h-56 mx-auto mb-4">
