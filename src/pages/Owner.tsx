@@ -17,7 +17,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { Loader2, ArrowLeft, Check, X, Ban, Shield, LogOut } from "lucide-react";
+import { Loader2, ArrowLeft, Check, X, Ban, Shield, LogOut, Trash2 } from "lucide-react";
 
 interface User {
   id: string;
@@ -263,6 +263,24 @@ const Owner = () => {
     }
   };
 
+  const handleDeleteUser = async (userId: string, username: string) => {
+    if (!confirm(`⚠️ Are you sure you want to permanently delete user "${username}"? This action cannot be undone.`)) return;
+
+    try {
+      const { error } = await supabase
+        .from("profiles")
+        .delete()
+        .eq("id", userId);
+
+      if (error) throw error;
+
+      toast.success("User deleted successfully");
+      await loadUsers();
+    } catch (error: any) {
+      toast.error(error.message || "Failed to delete user");
+    }
+  };
+
   const isUserBanned = (user: User) => {
     if (!user.ban_until) return false;
     return new Date(user.ban_until) > new Date();
@@ -457,6 +475,15 @@ const Owner = () => {
                           title="Force Logout"
                         >
                           <LogOut className="h-4 w-4" />
+                        </Button>
+                        
+                        <Button
+                          size="sm"
+                          variant="destructive"
+                          onClick={() => handleDeleteUser(user.id, user.username)}
+                          title="Delete User"
+                        >
+                          <Trash2 className="h-4 w-4" />
                         </Button>
                       </TableCell>
                     </TableRow>
