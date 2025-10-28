@@ -5,8 +5,17 @@ import { Slider } from "@/components/ui/slider";
 import { motion, AnimatePresence } from "framer-motion";
 import backgroundMusic from "@/assets/background-music.mp3";
 
-export const BackgroundMusicPlayer = () => {
+interface BackgroundMusicPlayerProps {
+  onAudioData?: (data: Uint8Array) => void;
+}
+
+export const BackgroundMusicPlayer = ({ onAudioData }: BackgroundMusicPlayerProps) => {
   const audioRef = useRef<HTMLAudioElement>(null);
+  const audioContextRef = useRef<AudioContext | null>(null);
+  const analyserRef = useRef<AnalyserNode | null>(null);
+  const dataArrayRef = useRef<Uint8Array | null>(null);
+  const animationFrameRef = useRef<number | null>(null);
+  
   const [isPlaying, setIsPlaying] = useState(false);
   const [volume, setVolume] = useState(70);
   const [showControls, setShowControls] = useState(false);
@@ -18,18 +27,51 @@ export const BackgroundMusicPlayer = () => {
     audioRef.current.volume = volume / 100;
     audioRef.current.loop = true;
 
+    // Setup audio context para análisis de frecuencias
+    const setupAudioContext = () => {
+      if (!audioRef.current || audioContextRef.current) return;
+      
+      audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
+      analyserRef.current = audioContextRef.current.createAnalyser();
+      analyserRef.current.fftSize = 256;
+      
+      const source = audioContextRef.current.createMediaElementSource(audioRef.current);
+      source.connect(analyserRef.current);
+      analyserRef.current.connect(audioContextRef.current.destination);
+      
+      const bufferLength = analyserRef.current.frequencyBinCount;
+      dataArrayRef.current = new Uint8Array(bufferLength);
+      
+      // Start analyzing audio
+      const analyzeAudio = () => {
+        if (analyserRef.current && dataArrayRef.current && onAudioData) {
+          analyserRef.current.getByteFrequencyData(dataArrayRef.current as any);
+          onAudioData(dataArrayRef.current);
+        }
+        animationFrameRef.current = requestAnimationFrame(analyzeAudio);
+      };
+      analyzeAudio();
+    };
+
     // Intentar autoplay (puede fallar en iOS hasta que el usuario interactúe)
     const playAudio = async () => {
       try {
         await audioRef.current?.play();
         setIsPlaying(true);
+        setupAudioContext();
       } catch (err) {
         console.log("Autoplay bloqueado, esperando interacción del usuario");
       }
     };
 
     playAudio();
-  }, []);
+
+    return () => {
+      if (animationFrameRef.current) {
+        cancelAnimationFrame(animationFrameRef.current);
+      }
+    };
+  }, [onAudioData]);
 
   useEffect(() => {
     if (audioRef.current) {
@@ -38,20 +80,41 @@ export const BackgroundMusicPlayer = () => {
   }, [volume]);
 
   const handleMainButton = async () => {
-    if (!audioRef.current) return;
-
-    if (!isPlaying) {
+    // Solo toggle el panel de controles, no afecta la reproducción
+    setShowControls((v) => !v);
+    
+    // Si la música no está sonando, intentar reproducir
+    if (!isPlaying && audioRef.current) {
       try {
         await audioRef.current.play();
         setIsPlaying(true);
+        
+        // Setup audio context si no existe
+        if (!audioContextRef.current) {
+          audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
+          analyserRef.current = audioContextRef.current.createAnalyser();
+          analyserRef.current.fftSize = 256;
+          
+          const source = audioContextRef.current.createMediaElementSource(audioRef.current);
+          source.connect(analyserRef.current);
+          analyserRef.current.connect(audioContextRef.current.destination);
+          
+          const bufferLength = analyserRef.current.frequencyBinCount;
+          dataArrayRef.current = new Uint8Array(bufferLength);
+          
+          const analyzeAudio = () => {
+            if (analyserRef.current && dataArrayRef.current && onAudioData) {
+              analyserRef.current.getByteFrequencyData(dataArrayRef.current as any);
+              onAudioData(dataArrayRef.current);
+            }
+            animationFrameRef.current = requestAnimationFrame(analyzeAudio);
+          };
+          analyzeAudio();
+        }
       } catch (e) {
         console.error(e);
       }
-    } else {
-      audioRef.current.pause();
-      setIsPlaying(false);
     }
-    setShowControls((v) => !v);
   };
 
   const togglePlay = async () => {
@@ -84,16 +147,12 @@ export const BackgroundMusicPlayer = () => {
       <audio ref={audioRef} src={backgroundMusic} preload="auto" />
 
       {/* Botón flotante y panel de control */}
-      <div
-        className="fixed bottom-6 right-6 z-50"
-        onMouseEnter={() => setShowControls(true)}
-        onMouseLeave={() => setShowControls(false)}
-      >
+      <div className="fixed bottom-6 right-6 z-50">
         <Button
           variant="secondary"
           size="icon"
           onClick={handleMainButton}
-          aria-label={isPlaying ? "Pausar música" : "Reproducir música"}
+          aria-label="Control de música"
           className="rounded-full shadow-glow hover:scale-105 transition-transform"
         >
           <Music className="h-5 w-5" />

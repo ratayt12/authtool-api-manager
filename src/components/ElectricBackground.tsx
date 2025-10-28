@@ -3,10 +3,20 @@ import { useEffect, useRef } from "react";
 interface ElectricBackgroundProps {
   color?: string; // HSL format: "200 100% 50%"
   segmentColor?: string; // HSL format: "200 100% 50%"
+  audioData?: Uint8Array;
 }
 
-export const ElectricBackground = ({ color = "200 100% 50%", segmentColor = "200 100% 50%" }: ElectricBackgroundProps) => {
+export const ElectricBackground = ({ color = "200 100% 50%", segmentColor = "200 100% 50%", audioData }: ElectricBackgroundProps) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const lastBeatRef = useRef<number>(0);
+  
+  // Calcular intensidad del audio
+  const getAudioIntensity = () => {
+    if (!audioData) return 0;
+    const bass = Array.from(audioData.slice(0, 20));
+    const average = bass.reduce((a, b) => a + b, 0) / bass.length;
+    return average / 255; // Normalizar entre 0 y 1
+  };
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -164,18 +174,29 @@ export const ElectricBackground = ({ color = "200 100% 50%", segmentColor = "200
     const animate = (timestamp: number) => {
       if (!ctx) return;
 
+      const intensity = getAudioIntensity();
+      const isBeat = intensity > 0.7;
+
       ctx.fillStyle = "rgba(0, 0, 0, 0.1)";
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-      // Spawn new lightning
-      if (timestamp - lastSpawn > 2000 + Math.random() * 3000) {
+      // Spawn new lightning basado en el beat
+      const spawnInterval = isBeat ? 100 : 2000 + Math.random() * 3000;
+      if (timestamp - lastSpawn > spawnInterval) {
         lightnings.push(new Lightning());
         lastSpawn = timestamp;
+        
+        // En beats fuertes, agregar múltiples rayos
+        if (isBeat && timestamp - lastBeatRef.current > 200) {
+          lightnings.push(new Lightning());
+          lightnings.push(new Lightning());
+          lastBeatRef.current = timestamp;
+        }
       }
 
-      // Update and draw segments
+      // Update and draw segments con intensidad basada en audio
       segments.forEach(segment => {
-        segment.draw(timestamp);
+        segment.draw(timestamp * (1 + intensity * 2));
         segment.update();
       });
 
@@ -196,7 +217,7 @@ export const ElectricBackground = ({ color = "200 100% 50%", segmentColor = "200
     return () => {
       window.removeEventListener("resize", setCanvasSize);
     };
-  }, [color, segmentColor]);
+  }, [color, segmentColor, audioData]);
 
   return (
     <canvas

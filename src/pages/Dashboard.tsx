@@ -46,6 +46,7 @@ const Dashboard = () => {
   const [isOwner, setIsOwner] = useState(false);
   const [refreshKeysTrigger, setRefreshKeysTrigger] = useState(0);
   const [isWheelOpen, setIsWheelOpen] = useState(false);
+  const [audioData, setAudioData] = useState<Uint8Array | undefined>(undefined);
   const navigate = useNavigate();
   const { t } = useLanguage();
 
@@ -202,10 +203,10 @@ const Dashboard = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-accent/10 relative">
       <ParticleEffect />
-      <ElectricBackground color={profile?.lightning_color} segmentColor={profile?.segment_color} />
+      <ElectricBackground color={profile?.lightning_color} segmentColor={profile?.segment_color} audioData={audioData} />
       <DeviceTracker />
-      <BackgroundMusicPlayer />
-      <WeeklyRewardWheel 
+      <BackgroundMusicPlayer onAudioData={setAudioData} />
+      <WeeklyRewardWheel
         onRewardClaimed={checkUser} 
         isOpen={isWheelOpen}
         onClose={() => setIsWheelOpen(false)}
