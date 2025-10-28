@@ -18,6 +18,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { LanguageSelector } from "@/components/LanguageSelector";
 import { DeviceTracker } from "@/components/DeviceTracker";
 import { SonicLoadingScreen } from "@/components/SonicLoadingScreen";
+import { BackgroundMusicPlayer } from "@/components/BackgroundMusicPlayer";
 import { AnimatePresence } from "framer-motion";
 
 interface Profile {
@@ -203,6 +204,7 @@ const Dashboard = () => {
       <ParticleEffect />
       <ElectricBackground color={profile?.lightning_color} segmentColor={profile?.segment_color} />
       <DeviceTracker />
+      <BackgroundMusicPlayer />
       <WeeklyRewardWheel 
         onRewardClaimed={checkUser} 
         isOpen={isWheelOpen}
