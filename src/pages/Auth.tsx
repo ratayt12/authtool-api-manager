@@ -8,6 +8,27 @@ import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { Loader2, KeyRound, Download } from "lucide-react";
 import { MFAVerification } from "@/components/MFAVerification";
+import { z } from "zod";
+
+const authSchema = z.object({
+  email: z.string()
+    .trim()
+    .min(1, "Email is required")
+    .email("Invalid email format")
+    .max(255, "Email too long"),
+  password: z.string()
+    .min(8, "Password must be at least 8 characters")
+    .max(72, "Password too long")
+    .regex(/[a-z]/, "Password must contain lowercase letter")
+    .regex(/[A-Z]/, "Password must contain uppercase letter")
+    .regex(/[0-9]/, "Password must contain number"),
+  username: z.string()
+    .trim()
+    .min(3, "Username must be at least 3 characters")
+    .max(30, "Username too long")
+    .regex(/^[a-zA-Z0-9_]+$/, "Username can only contain letters, numbers, and underscores")
+    .optional(),
+});
 
 const Auth = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -43,6 +64,20 @@ const Auth = () => {
     setLoading(true);
 
     try {
+      // Validate input
+      const validation = authSchema.safeParse({
+        email,
+        password,
+        username: isLogin ? undefined : username,
+      });
+
+      if (!validation.success) {
+        const firstError = validation.error.issues[0];
+        toast.error(firstError.message);
+        setLoading(false);
+        return;
+      }
+
       if (isLogin) {
         const { data, error } = await supabase.auth.signInWithPassword({
           email,

@@ -8,6 +8,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { z } from "zod";
+
+const keyDurationSchema = z.enum(["1day", "1week", "25days"]);
 
 interface CreateKeyDialogProps {
   children: React.ReactNode;
@@ -25,9 +28,17 @@ export const CreateKeyDialog = ({ children, onKeyCreated, disabled = false }: Cr
     setLoading(true);
 
     try {
+      // Validate duration
+      const validation = keyDurationSchema.safeParse(duration);
+      if (!validation.success) {
+        toast.error("Invalid duration selected");
+        setLoading(false);
+        return;
+      }
+
       const { data, error } = await supabase.functions.invoke("create-key", {
         body: { 
-          duration
+          duration: validation.data
         },
       });
 

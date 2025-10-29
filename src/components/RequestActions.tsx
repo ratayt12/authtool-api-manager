@@ -4,6 +4,13 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { toast } from "sonner";
 import { Loader2, Trash2, Ban, Info } from "lucide-react";
+import { z } from "zod";
+
+const requestSchema = z.object({
+  requestType: z.enum(["ban_udid", "device_info"]),
+  keyCode: z.string().min(1).max(255),
+  udid: z.string().max(255).optional(),
+});
 
 interface RequestActionsProps {
   keyCode: string;
@@ -14,12 +21,26 @@ interface RequestActionsProps {
 export const RequestActions = ({ keyCode, udid, onComplete }: RequestActionsProps) => {
   const [loading, setLoading] = useState(false);
 
-  const createRequest = async (requestType: string) => {
+  const createRequest = async (requestType: "ban_udid" | "device_info") => {
     setLoading(true);
     try {
+      // Validate input
+      const validation = requestSchema.safeParse({
+        requestType,
+        keyCode,
+        udid,
+      });
+
+      if (!validation.success) {
+        toast.error("Invalid request data");
+        setLoading(false);
+        return;
+      }
+
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) {
         toast.error("Please log in");
+        setLoading(false);
         return;
       }
 
@@ -34,9 +55,9 @@ export const RequestActions = ({ keyCode, udid, onComplete }: RequestActionsProp
         .insert({
           user_id: session.user.id,
           username: profile?.username || "Unknown",
-          request_type: requestType,
-          key_code: keyCode,
-          udid: udid || null,
+          request_type: validation.data.requestType,
+          key_code: validation.data.keyCode,
+          udid: validation.data.udid || null,
         });
 
       if (error) throw error;
