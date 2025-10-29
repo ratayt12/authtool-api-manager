@@ -64,6 +64,14 @@ const Index = () => {
           <Button 
             size="lg" 
             variant="secondary"
+            onClick={() => window.location.href = '/install'}
+          >
+            <Smartphone className="mr-2 h-4 w-4" />
+            Instalar App
+          </Button>
+          <Button 
+            size="lg" 
+            variant="secondary"
             onClick={() => window.location.href = '/download-ios'}
           >
             <Smartphone className="mr-2 h-4 w-4" />
