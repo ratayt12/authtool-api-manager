@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
+import sonicRunning from "@/assets/sonic-running.png";
 
 interface SonicLoadingScreenProps {
   onComplete: () => void;
@@ -46,7 +47,7 @@ export const SonicLoadingScreen = ({ onComplete }: SonicLoadingScreenProps) => {
           <div className="w-32 h-32 rounded-full border-4 border-primary/30 border-t-primary"></div>
         </motion.div>
 
-        {/* Sonic-style running animation with text */}
+        {/* Sonic character running animation */}
         <motion.div
           animate={{
             x: [-10, 10, -10],
@@ -57,11 +58,13 @@ export const SonicLoadingScreen = ({ onComplete }: SonicLoadingScreenProps) => {
             repeat: Infinity,
             ease: "easeInOut",
           }}
-          className="relative z-10 text-8xl font-bold"
+          className="relative z-10"
         >
-          <span className="bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent animate-gradient">
-            S
-          </span>
+          <img 
+            src={sonicRunning} 
+            alt="Sonic running" 
+            className="w-32 h-32 object-contain drop-shadow-[0_0_20px_rgba(59,130,246,0.8)]"
+          />
         </motion.div>
 
         {/* Electric sparks */}
@@ -126,21 +129,48 @@ export const SonicLoadingScreen = ({ onComplete }: SonicLoadingScreenProps) => {
         </motion.div>
       </div>
 
-      {/* Electric floor lines */}
-      <div className="absolute bottom-0 left-0 right-0 h-32 overflow-hidden opacity-30">
-        {[...Array(5)].map((_, i) => (
+      {/* Electric speed trail - Blue electric track */}
+      <div className="absolute bottom-0 left-0 right-0 h-32 overflow-hidden">
+        {/* Main electric blue speed lines */}
+        {[...Array(8)].map((_, i) => (
           <motion.div
             key={i}
+            initial={{ x: -200 }}
+            animate={{ x: "100vw" }}
+            transition={{
+              duration: 1.5,
+              repeat: Infinity,
+              delay: i * 0.15,
+              ease: "linear",
+            }}
+            className="absolute bottom-0 h-2 bg-gradient-to-r from-transparent via-blue-400 to-transparent"
+            style={{ 
+              left: `${i * 15}%`,
+              width: '150px',
+              boxShadow: '0 0 20px rgba(59, 130, 246, 0.8), 0 0 40px rgba(59, 130, 246, 0.4)',
+              filter: 'blur(1px)'
+            }}
+          />
+        ))}
+        
+        {/* Additional faster streak lines */}
+        {[...Array(5)].map((_, i) => (
+          <motion.div
+            key={`fast-${i}`}
             initial={{ x: -100 }}
             animate={{ x: "100vw" }}
             transition={{
-              duration: 2,
+              duration: 1,
               repeat: Infinity,
-              delay: i * 0.2,
+              delay: i * 0.1,
               ease: "linear",
             }}
-            className="absolute bottom-0 w-32 h-1 bg-gradient-to-r from-transparent via-primary to-transparent"
-            style={{ left: `${i * 25}%` }}
+            className="absolute bottom-2 h-1 bg-gradient-to-r from-transparent via-cyan-300 to-transparent"
+            style={{ 
+              left: `${i * 20}%`,
+              width: '100px',
+              boxShadow: '0 0 15px rgba(34, 211, 238, 0.9)',
+            }}
           />
         ))}
       </div>
