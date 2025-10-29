@@ -592,6 +592,86 @@ const translations: Translations = {
     vi: "Mở Vòng Quay",
     ar: "افتح العجلة",
     th: "เปิดวงล้อ"
+  },
+  sonicApi: {
+    en: "Sonic Api",
+    es: "Sonic Api",
+    pt: "Sonic Api",
+    vi: "Sonic Api",
+    ar: "Sonic Api",
+    th: "Sonic Api"
+  },
+  apiDescription: {
+    en: "ApiSonic is created only to create and manage SonicMode branded mod menu keys to facilitate resellers.",
+    es: "ApiSonic se creó solo para crear y administrar claves de menú de modificación de marca SonicMode para facilitar a los revendedores.",
+    pt: "ApiSonic foi criado apenas para criar e gerenciar chaves de menu mod da marca SonicMode para facilitar revendedores.",
+    vi: "ApiSonic được tạo ra chỉ để tạo và quản lý các khóa menu mod thương hiệu SonicMode để hỗ trợ người bán lại.",
+    ar: "تم إنشاء ApiSonic فقط لإنشاء وإدارة مفاتيح قائمة التعديل ذات العلامة التجارية SonicMode لتسهيل الأمر على الموزعين.",
+    th: "ApiSonic ถูกสร้างขึ้นเพื่อสร้างและจัดการคีย์เมนูม็อดแบรนด์ SonicMode เพื่ออำนวยความสะดวกให้กับผู้ค้าปลีก"
+  },
+  secureAccess: {
+    en: "Secure Access",
+    es: "Acceso Seguro",
+    pt: "Acesso Seguro",
+    vi: "Truy cập an toàn",
+    ar: "وصول آمن",
+    th: "การเข้าถึงที่ปลอดภัย"
+  },
+  secureAccessDescription: {
+    en: "Authentication system with device verification and 2FA. Full control to manage and create keys yourself.",
+    es: "Sistema de autenticación con verificación de dispositivos y 2FA. Control total para gestionar y crear las keys tú mismo.",
+    pt: "Sistema de autenticação com verificação de dispositivo e 2FA. Controle total para gerenciar e criar chaves você mesmo.",
+    vi: "Hệ thống xác thực với xác minh thiết bị và 2FA. Kiểm soát đầy đủ để quản lý và tạo khóa bằng chính bạn.",
+    ar: "نظام مصادقة مع التحقق من الجهاز و 2FA. تحكم كامل لإدارة وإنشاء المفاتيح بنفسك.",
+    th: "ระบบการรับรองความถูกต้องพร้อมการตรวจสอบอุปกรณ์และ 2FA ควบคุมเต็มรูปแบบเพื่อจัดการและสร้างคีย์ด้วยตัวเอง"
+  },
+  creditsSystem: {
+    en: "Credits System",
+    es: "Sistema de Créditos",
+    pt: "Sistema de Créditos",
+    vi: "Hệ thống tín dụng",
+    ar: "نظام الاعتمادات",
+    th: "ระบบเครดิต"
+  },
+  creditsSystemDescription: {
+    en: "Manage credits per key with configurable limits. Weekly rewards and automatic recharge system.",
+    es: "Gestiona créditos por clave con límites configurables. Recompensas semanales y sistema de recarga automática.",
+    pt: "Gerencie créditos por chave com limites configuráveis. Recompensas semanais e sistema de recarga automática.",
+    vi: "Quản lý tín dụng mỗi khóa với giới hạn có thể cấu hình. Phần thưởng hàng tuần và hệ thống nạp tiền tự động.",
+    ar: "إدارة الاعتمادات لكل مفتاح مع حدود قابلة للتكوين. مكافآت أسبوعية ونظام إعادة شحن تلقائي.",
+    th: "จัดการเครดิตต่อคีย์ด้วยขีดจำกัดที่กำหนดค่าได้ รางวัลรายสัปดาห์และระบบเติมเงินอัตโนมัติ"
+  },
+  getStarted: {
+    en: "Get Started",
+    es: "Comenzar",
+    pt: "Começar",
+    vi: "Bắt đầu",
+    ar: "ابدأ",
+    th: "เริ่มต้น"
+  },
+  signIn: {
+    en: "Sign In",
+    es: "Iniciar Sesión",
+    pt: "Entrar",
+    vi: "Đăng nhập",
+    ar: "تسجيل الدخول",
+    th: "ลงชื่อเข้าใช้"
+  },
+  installApp: {
+    en: "Install App",
+    es: "Instalar App",
+    pt: "Instalar App",
+    vi: "Cài đặt ứng dụng",
+    ar: "تثبيت التطبيق",
+    th: "ติดตั้งแอป"
+  },
+  madeBy: {
+    en: "made by",
+    es: "hecho por",
+    pt: "feito por",
+    vi: "được tạo bởi",
+    ar: "صنع بواسطة",
+    th: "สร้างโดย"
   }
 };
 

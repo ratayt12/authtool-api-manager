@@ -5,11 +5,13 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Shield, Coins, Download } from "lucide-react";
 import { SonicLoadingScreen } from "@/components/SonicLoadingScreen";
 import { LanguageSelector } from "@/components/LanguageSelector";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { motion } from "framer-motion";
 
 const Index = () => {
   const navigate = useNavigate();
   const [showLoading, setShowLoading] = useState(true);
+  const { t } = useLanguage();
 
   if (showLoading) {
     return <SonicLoadingScreen onComplete={() => setShowLoading(false)} />;
@@ -105,10 +107,10 @@ const Index = () => {
               backgroundSize: "200% 200%",
             }}
           >
-            Sonic Api
+            {t("sonicApi")}
           </motion.h1>
           <p className="text-xl md:text-2xl text-muted-foreground max-w-2xl mx-auto">
-            ApiSonic is created only to create and manage SonicMode branded mod menu keys to facilitate resellers.
+            {t("apiDescription")}
           </p>
         </motion.div>
 
@@ -124,10 +126,10 @@ const Index = () => {
                 <div className="p-3 rounded-xl bg-primary/10">
                   <Shield className="h-6 w-6 text-primary" />
                 </div>
-                <CardTitle className="text-2xl">Secure Access</CardTitle>
+                <CardTitle className="text-2xl">{t("secureAccess")}</CardTitle>
               </div>
               <CardDescription className="text-base">
-                Authentication system with device verification and 2FA. Full control to manage and create keys yourself.
+                {t("secureAccessDescription")}
               </CardDescription>
             </CardHeader>
           </Card>
@@ -138,10 +140,10 @@ const Index = () => {
                 <div className="p-3 rounded-xl bg-accent/10">
                   <Coins className="h-6 w-6 text-accent" />
                 </div>
-                <CardTitle className="text-2xl">Credits System</CardTitle>
+                <CardTitle className="text-2xl">{t("creditsSystem")}</CardTitle>
               </div>
               <CardDescription className="text-base">
-                Manage credits per key with configurable limits. Weekly rewards and automatic recharge system.
+                {t("creditsSystemDescription")}
               </CardDescription>
             </CardHeader>
           </Card>
@@ -158,7 +160,7 @@ const Index = () => {
             size="lg"
             className="flex-1 h-14 text-lg bg-gradient-to-r from-primary to-accent hover:opacity-90 shadow-lg"
           >
-            Get Started
+            {t("getStarted")}
           </Button>
           <Button
             onClick={() => navigate("/auth")}
@@ -166,7 +168,7 @@ const Index = () => {
             variant="outline"
             className="flex-1 h-14 text-lg border-primary/30 hover:bg-primary/5"
           >
-            Sign In
+            {t("signIn")}
           </Button>
         </motion.div>
 
@@ -183,7 +185,7 @@ const Index = () => {
             className="text-base text-muted-foreground hover:text-primary"
           >
             <Download className="mr-2 h-5 w-5" />
-            Install App
+            {t("installApp")}
           </Button>
         </motion.div>
       </div>
@@ -210,6 +212,26 @@ const Index = () => {
           />
         ))}
       </div>
+
+      {/* Made by yowx footer */}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.5, delay: 0.8 }}
+        className="absolute bottom-4 left-0 right-0 z-50 text-center"
+      >
+        <p className="text-sm text-muted-foreground">
+          {t("madeBy")}{" "}
+          <a
+            href="https://t.me/yowxios"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-primary hover:text-accent transition-all duration-300 font-medium relative inline-block px-2 py-1 rounded-md hover:shadow-[0_0_15px_rgba(59,130,246,0.5)] hover:ring-2 hover:ring-primary/50"
+          >
+            yowx
+          </a>
+        </p>
+      </motion.div>
     </div>
   );
 };
