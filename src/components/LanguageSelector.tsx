@@ -14,9 +14,11 @@ export const LanguageSelector = () => {
         </SelectTrigger>
         <SelectContent>
           <SelectItem value="en">English</SelectItem>
-          <SelectItem value="es">Español</SelectItem>
-          <SelectItem value="pt">Português</SelectItem>
-          <SelectItem value="vi">Tiếng Việt</SelectItem>
+          <SelectItem value="es">Spanish</SelectItem>
+          <SelectItem value="ar">Arabic</SelectItem>
+          <SelectItem value="pt">Portuguese</SelectItem>
+          <SelectItem value="vi">Vietnamese</SelectItem>
+          <SelectItem value="th">Thai</SelectItem>
         </SelectContent>
       </Select>
     </div>

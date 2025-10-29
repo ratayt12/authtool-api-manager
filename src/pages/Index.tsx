@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Shield, Coins, Download } from "lucide-react";
 import { SonicLoadingScreen } from "@/components/SonicLoadingScreen";
+import { LanguageSelector } from "@/components/LanguageSelector";
 import { motion } from "framer-motion";
 
 const Index = () => {
@@ -16,6 +17,11 @@ const Index = () => {
 
   return (
     <div className="min-h-screen relative overflow-hidden">
+      {/* Language Selector */}
+      <div className="absolute top-4 right-4 z-50">
+        <LanguageSelector />
+      </div>
+
       {/* Animated electric background */}
       <div className="absolute inset-0 bg-gradient-to-br from-background via-primary/5 to-accent/5">
         {/* Moving segments/particles */}
@@ -102,7 +108,7 @@ const Index = () => {
             Sonic Api
           </motion.h1>
           <p className="text-xl md:text-2xl text-muted-foreground max-w-2xl mx-auto">
-            Sistema profesional de gestión de llaves API con seguridad empresarial y sistema de créditos
+            ApiSonic is created only to create and manage SonicMode branded mod menu keys to facilitate resellers.
           </p>
         </motion.div>
 
@@ -118,10 +124,10 @@ const Index = () => {
                 <div className="p-3 rounded-xl bg-primary/10">
                   <Shield className="h-6 w-6 text-primary" />
                 </div>
-                <CardTitle className="text-2xl">Acceso Seguro</CardTitle>
+                <CardTitle className="text-2xl">Secure Access</CardTitle>
               </div>
               <CardDescription className="text-base">
-                Sistema de autenticación con verificación de dispositivos y 2FA. Control total sobre quién accede a tus APIs.
+                Authentication system with device verification and 2FA. Full control to manage and create keys yourself.
               </CardDescription>
             </CardHeader>
           </Card>
@@ -132,10 +138,10 @@ const Index = () => {
                 <div className="p-3 rounded-xl bg-accent/10">
                   <Coins className="h-6 w-6 text-accent" />
                 </div>
-                <CardTitle className="text-2xl">Sistema de Créditos</CardTitle>
+                <CardTitle className="text-2xl">Credits System</CardTitle>
               </div>
               <CardDescription className="text-base">
-                Gestiona créditos por llave con límites configurables. Recompensas semanales y sistema de recarga automática.
+                Manage credits per key with configurable limits. Weekly rewards and automatic recharge system.
               </CardDescription>
             </CardHeader>
           </Card>
@@ -152,7 +158,7 @@ const Index = () => {
             size="lg"
             className="flex-1 h-14 text-lg bg-gradient-to-r from-primary to-accent hover:opacity-90 shadow-lg"
           >
-            Comenzar
+            Get Started
           </Button>
           <Button
             onClick={() => navigate("/auth")}
@@ -160,7 +166,7 @@ const Index = () => {
             variant="outline"
             className="flex-1 h-14 text-lg border-primary/30 hover:bg-primary/5"
           >
-            Iniciar Sesión
+            Sign In
           </Button>
         </motion.div>
 
@@ -177,7 +183,7 @@ const Index = () => {
             className="text-base text-muted-foreground hover:text-primary"
           >
             <Download className="mr-2 h-5 w-5" />
-            iOS Config
+            Install App
           </Button>
         </motion.div>
       </div>
