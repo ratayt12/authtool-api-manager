@@ -117,7 +117,6 @@ export const KeysList = () => {
       });
 
       if (error) throw error;
-      await loadKeys();
     } catch (error: any) {
       toast.error(error.message || "Failed to reset key");
       await loadKeys(); // Revert on error
@@ -140,7 +139,6 @@ export const KeysList = () => {
       });
 
       if (error) throw error;
-      await loadKeys();
     } catch (error: any) {
       toast.error(error.message || "Failed to block key");
       await loadKeys(); // Revert on error
@@ -163,7 +161,6 @@ export const KeysList = () => {
       });
 
       if (error) throw error;
-      await loadKeys();
     } catch (error: any) {
       toast.error(error.message || "Failed to unblock key");
       await loadKeys(); // Revert on error
@@ -239,7 +236,6 @@ export const KeysList = () => {
       });
 
       if (error) throw error;
-      await loadKeys();
     } catch (error: any) {
       toast.error(error.message || "Failed to delete key");
       await loadKeys(); // Revert on error
