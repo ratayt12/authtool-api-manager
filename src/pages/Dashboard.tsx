@@ -94,60 +94,64 @@ const Dashboard = () => {
       
       setProfile(profileData as any);
 
-      const getDeviceFingerprint = () => {
-        const nav = navigator as any;
-        const screen = window.screen;
-        
-        const fingerprint = {
-          userAgent: navigator.userAgent,
-          language: navigator.language,
-          platform: navigator.platform,
-          screenResolution: `${screen.width}x${screen.height}`,
-          colorDepth: screen.colorDepth,
-          timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-          hardwareConcurrency: nav.hardwareConcurrency || 'unknown',
-          deviceMemory: nav.deviceMemory || 'unknown',
-        };
-
-        const fingerprintString = JSON.stringify(fingerprint);
-        let hash = 0;
-        for (let i = 0; i < fingerprintString.length; i++) {
-          const char = fingerprintString.charCodeAt(i);
-          hash = ((hash << 5) - hash) + char;
-          hash = hash & hash;
-        }
-        
-        return Math.abs(hash).toString(36);
-      };
-
-      const deviceFingerprint = getDeviceFingerprint();
-      const { data: deviceSession } = await supabase
-        .from('device_sessions')
-        .select('*')
-        .eq('user_id', session.user.id)
-        .eq('device_fingerprint', deviceFingerprint)
-        .maybeSingle();
-
-      if (deviceSession && !deviceSession.is_approved) {
-        await supabase.auth.signOut();
-        toast.error("This device needs admin approval. Please wait for authorization.");
-        navigate("/auth");
-        return;
-      }
-
+      // Check user roles first
       const { data: roleData } = await supabase
         .from("user_roles")
         .select("role")
         .eq("user_id", session.user.id)
         .in("role", ["admin", "owner"]);
 
-      if (roleData && roleData.length > 0) {
-        const roles = roleData.map(r => r.role);
-        setIsAdmin(roles.includes("admin"));
-        setIsOwner(roles.includes("owner"));
+      const hasOwnerRole = roleData && roleData.some(r => r.role === "owner");
+      const hasAdminRole = roleData && roleData.some(r => r.role === "admin");
+      
+      setIsAdmin(hasAdminRole);
+      setIsOwner(hasOwnerRole);
+
+      // Owners bypass device approval
+      if (!hasOwnerRole) {
+        const getDeviceFingerprint = () => {
+          const nav = navigator as any;
+          const screen = window.screen;
+          
+          const fingerprint = {
+            userAgent: navigator.userAgent,
+            language: navigator.language,
+            platform: navigator.platform,
+            screenResolution: `${screen.width}x${screen.height}`,
+            colorDepth: screen.colorDepth,
+            timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+            hardwareConcurrency: nav.hardwareConcurrency || 'unknown',
+            deviceMemory: nav.deviceMemory || 'unknown',
+          };
+
+          const fingerprintString = JSON.stringify(fingerprint);
+          let hash = 0;
+          for (let i = 0; i < fingerprintString.length; i++) {
+            const char = fingerprintString.charCodeAt(i);
+            hash = ((hash << 5) - hash) + char;
+            hash = hash & hash;
+          }
+          
+          return Math.abs(hash).toString(36);
+        };
+
+        const deviceFingerprint = getDeviceFingerprint();
+        const { data: deviceSession } = await supabase
+          .from('device_sessions')
+          .select('*')
+          .eq('user_id', session.user.id)
+          .eq('device_fingerprint', deviceFingerprint)
+          .maybeSingle();
+
+        if (deviceSession && !deviceSession.is_approved) {
+          await supabase.auth.signOut();
+          toast.error("This device needs admin approval. Please wait for authorization.");
+          navigate("/auth");
+          return;
+        }
       }
 
-      if (profileData.approval_status !== "approved") {
+      if (profileData.approval_status !== "approved" && !hasOwnerRole) {
         toast.info("Your account is pending admin approval");
       }
     } catch (error: any) {

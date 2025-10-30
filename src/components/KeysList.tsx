@@ -42,8 +42,16 @@ export const KeysList = () => {
 
   const loadKeys = async () => {
     try {
+      setLoading(true);
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) return;
+
+      // Sync deleted keys from AuthTool API
+      try {
+        await supabase.functions.invoke('sync-deleted-keys');
+      } catch (syncError) {
+        console.log("Error syncing deleted keys:", syncError);
+      }
 
       const { data, error } = await supabase
         .from("keys")
