@@ -62,6 +62,21 @@ export const KeysList = () => {
     };
   }, []);
 
+  // Periodic sync with AuthTool to auto-remove externally-deleted keys
+  useEffect(() => {
+    const interval = setInterval(async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) return;
+        await supabase.functions.invoke('sync-deleted-keys');
+        // Realtime will pick up DB deletions
+      } catch (e) {
+        // silent
+      }
+    }, 20000);
+    return () => clearInterval(interval);
+  }, []);
+
   const loadKeys = async () => {
     try {
       setLoading(true);

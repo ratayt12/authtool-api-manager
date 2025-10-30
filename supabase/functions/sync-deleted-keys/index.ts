@@ -56,13 +56,8 @@ serve(async (req) => {
     // Check each key in AuthTool API
     for (const key of dbKeys) {
       try {
-        // Skip very recent keys to avoid propagation issues (10 minutes)
-        const createdAt = new Date(key.created_at as unknown as string);
-        const minutesSince = (Date.now() - createdAt.getTime()) / 60000;
-        if (!isNaN(minutesSince) && minutesSince < 10) {
-          console.log(`Skipping recent key ${key.key_code} (${minutesSince.toFixed(1)} min old)`);
-          continue;
-        }
+        // Immediate sync: removed recent-key skip to reflect external deletions instantly
+
 
         const response = await fetch(
           `https://api.authtool.app/public/v1/key/${key.key_code}/detail`,
