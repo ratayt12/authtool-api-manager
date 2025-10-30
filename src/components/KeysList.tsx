@@ -102,6 +102,12 @@ export const KeysList = () => {
   };
 
   const handleReset = async (keyCode: string) => {
+    // Optimistic update
+    setKeys(prevKeys => prevKeys.map(key => 
+      key.key_code === keyCode ? { ...key, activate_count: 0 } : key
+    ));
+    toast.success("Key reset successfully");
+
     try {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) return;
@@ -111,15 +117,20 @@ export const KeysList = () => {
       });
 
       if (error) throw error;
-
-      toast.success("Key reset successfully");
       await loadKeys();
     } catch (error: any) {
       toast.error(error.message || "Failed to reset key");
+      await loadKeys(); // Revert on error
     }
   };
 
   const handleBlock = async (keyCode: string) => {
+    // Optimistic update
+    setKeys(prevKeys => prevKeys.map(key => 
+      key.key_code === keyCode ? { ...key, status: 'blocked' } : key
+    ));
+    toast.success("Key blocked successfully");
+
     try {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) return;
@@ -129,15 +140,20 @@ export const KeysList = () => {
       });
 
       if (error) throw error;
-
-      toast.success("Key blocked successfully");
       await loadKeys();
     } catch (error: any) {
       toast.error(error.message || "Failed to block key");
+      await loadKeys(); // Revert on error
     }
   };
 
   const handleUnblock = async (keyCode: string) => {
+    // Optimistic update
+    setKeys(prevKeys => prevKeys.map(key => 
+      key.key_code === keyCode ? { ...key, status: 'active' } : key
+    ));
+    toast.success("Key unblocked successfully");
+
     try {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) return;
@@ -147,11 +163,10 @@ export const KeysList = () => {
       });
 
       if (error) throw error;
-
-      toast.success("Key unblocked successfully");
       await loadKeys();
     } catch (error: any) {
       toast.error(error.message || "Failed to unblock key");
+      await loadKeys(); // Revert on error
     }
   };
 
@@ -211,6 +226,10 @@ export const KeysList = () => {
   const handleDelete = async (keyCode: string) => {
     if (!confirm("Are you sure you want to delete this key? This action cannot be undone.")) return;
 
+    // Optimistic update
+    setKeys(prevKeys => prevKeys.filter(key => key.key_code !== keyCode));
+    toast.success("Key deleted successfully");
+
     try {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) return;
@@ -220,11 +239,10 @@ export const KeysList = () => {
       });
 
       if (error) throw error;
-
-      toast.success("Key deleted successfully from both database and AuthTool");
       await loadKeys();
     } catch (error: any) {
       toast.error(error.message || "Failed to delete key");
+      await loadKeys(); // Revert on error
     }
   };
 
@@ -279,11 +297,13 @@ export const KeysList = () => {
                         </code>
                         <Badge variant={
                           key.status === "deleted" ? "outline" :
-                          key.status === "active" ? "default" : 
                           key.status === "blocked" ? "destructive" : 
+                          key.activate_count > 0 ? "default" : 
                           "secondary"
                         }>
-                          {key.status}
+                          {key.status === "deleted" ? "deleted" :
+                           key.status === "blocked" ? "blocked" :
+                           key.activate_count > 0 ? "Active" : "Pending"}
                         </Badge>
                         <KeyPrivateMessages keyCode={key.key_code} />
                       </div>
