@@ -37,7 +37,7 @@ serve(async (req) => {
     // Get all keys for this user from database
     const { data: dbKeys, error: dbError } = await supabase
       .from('keys')
-      .select('id, key_code')
+      .select('id, key_code, created_at')
       .eq('user_id', user.id);
 
     if (dbError) {
@@ -56,43 +56,44 @@ serve(async (req) => {
     // Check each key in AuthTool API
     for (const key of dbKeys) {
       try {
+        // Skip very recent keys to avoid propagation issues (10 minutes)
+        const createdAt = new Date(key.created_at as unknown as string);
+        const minutesSince = (Date.now() - createdAt.getTime()) / 60000;
+        if (!isNaN(minutesSince) && minutesSince < 10) {
+          console.log(`Skipping recent key ${key.key_code} (${minutesSince.toFixed(1)} min old)`);
+          continue;
+        }
+
         const response = await fetch(
-          `https://api.authtool.cc/api/v1/keydetails?key=${key.key_code}`,
+          `https://api.authtool.app/public/v1/key/${key.key_code}/detail`,
           {
             method: 'GET',
             headers: {
-              'API-KEY': authtoolApiKey,
-              'Content-Type': 'application/json',
+              'X-API-Key': authtoolApiKey,
             },
           }
         );
 
-        // If key doesn't exist in AuthTool (404 or error), delete it from database
         if (!response.ok) {
-          console.log(`Key ${key.key_code} not found in AuthTool, deleting from database`);
-          
-          const { error: deleteError } = await supabase
-            .from('keys')
-            .delete()
-            .eq('id', key.id);
-
-          if (deleteError) {
-            console.error(`Error deleting key ${key.key_code}:`, deleteError);
+          if (response.status === 404) {
+            console.log(`Key ${key.key_code} not found in AuthTool (404), deleting from database`);
+            const { error: deleteError } = await supabase
+              .from('keys')
+              .delete()
+              .eq('id', key.id);
+            if (deleteError) {
+              console.error(`Error deleting key ${key.key_code}:`, deleteError);
+            } else {
+              deletedCount++;
+            }
           } else {
-            deletedCount++;
+            console.warn(`AuthTool responded ${response.status} for ${key.key_code}. Skipping deletion.`);
           }
         }
       } catch (error) {
         console.error(`Error checking key ${key.key_code}:`, error);
-        // If there's an error checking the key, assume it doesn't exist and delete it
-        const { error: deleteError } = await supabase
-          .from('keys')
-          .delete()
-          .eq('id', key.id);
-
-        if (!deleteError) {
-          deletedCount++;
-        }
+        // Do not delete on network or API errors; keep local record
+        continue;
       }
     }
 
