@@ -40,11 +40,38 @@ export const KeysList = () => {
     loadKeys();
   }, []);
 
+  // Add effect to reload when component remounts or updates
+  useEffect(() => {
+    const channel = supabase
+      .channel('keys-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'keys'
+        },
+        () => {
+          loadKeys();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, []);
+
   const loadKeys = async () => {
     try {
       setLoading(true);
       const { data: { session } } = await supabase.auth.getSession();
-      if (!session) return;
+      if (!session) {
+        console.log("No active session");
+        return;
+      }
+
+      console.log("Loading keys for user:", session.user.id);
 
       // Sync deleted keys from AuthTool API
       try {
@@ -59,10 +86,16 @@ export const KeysList = () => {
         .eq("user_id", session.user.id)
         .order("created_at", { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.error("Error loading keys:", error);
+        throw error;
+      }
+      
+      console.log("Keys loaded:", data?.length || 0);
       setKeys(data || []);
-    } catch (error) {
-      toast.error("Failed to load keys");
+    } catch (error: any) {
+      console.error("Failed to load keys:", error);
+      toast.error(error.message || "Failed to load keys");
     } finally {
       setLoading(false);
     }
